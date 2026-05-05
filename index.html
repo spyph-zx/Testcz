@@ -149,17 +149,26 @@ body.p1-theme .b3{opacity:.16;}
 .p1-root {
   position: fixed; inset: 0; z-index: 2; 
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  background-size: cover; background-position: center;
-  /* Make sure body dusk color is visible underneath */
-  background-color: transparent;
+  background-size: cover; 
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: #1C0012; /* Fallback color */
 }
 
-/* Vignette + Grain layer (Exact Premium Vibe) */
+/* Vignette + Grain layer */
 .p1-va {
-  position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  position: absolute; 
+  inset: 0; 
+  z-index: 1; 
+  pointer-events: none;
   background:
-    radial-gradient(ellipse 85% 65% at 50% 50%, transparent 25%, rgba(28,0,18,0.40) 100%),
-    linear-gradient(to bottom, rgba(28,0,18,0.12) 0%, transparent 30%, transparent 70%, rgba(28,0,18,0.20) 100%);
+    /* Is 0.3 ko 0.2 karne se corners aur bhi light ho jayenge */
+    radial-gradient(ellipse 85% 65% at 50% 50%, transparent 10%, rgba(28,0,18,0.3) 100%),
+    linear-gradient(to bottom, rgba(28,0,18,0.1) 0%, transparent 30%, transparent 70%, rgba(28,0,18,0.2) 100%);
+  
+  /* Ye line pure layer ko halka kar degi jisse BG image chamkegi */
+  opacity: 0.6; 
+  
   animation: valAura 8s ease-in-out infinite alternate;
 }
 .p1-va::after {
@@ -530,10 +539,20 @@ const p1Sids=['s-p1-card','s-p1-v1','s-p1-suc','s-p1-v2'];
 function showScreen(id){
   allSids.forEach(s=>$(s).classList.remove('on'));
   $(id).classList.add('on');
-  const isP1=p1Sids.includes(id);
-  document.body.classList.toggle('p1-theme',isP1);
-  p1Petals.style.display=p1Sparkles.style.display=p1Hearts.style.display=isP1?'block':'none';
-  if(P1_BG&&isP1) document.querySelectorAll('.p1-root').forEach(r=>r.style.backgroundImage=`url(${P1_BG})`);
+  
+  const isP1 = p1Sids.includes(id);
+  document.body.classList.toggle('p1-theme', isP1);
+  
+  // Petals aur Sparkles ko display block karein
+  p1Petals.style.display = p1Sparkles.style.display = p1Hearts.style.display = isP1 ? 'block' : 'none';
+  
+  // Agar Phase 1 screen hai aur BG image set hai
+  if(isP1) {
+    const currentRoot = $(id).querySelector('.p1-root');
+    if(currentRoot && P1_BG) {
+        currentRoot.style.backgroundImage = `url(${P1_BG})`;
+    }
+  }
 }
 
 /* ── LANDING ── */
