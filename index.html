@@ -45,14 +45,15 @@ body.p1-active #blobs{opacity:0;pointer-events:none;}
 #p1-bg{
   position:fixed;inset:0;z-index:1;pointer-events:none;
   background:url('background.jpg') center center/cover no-repeat;
-  filter:brightness(0.60) saturate(1.2);
+  background-size:cover;background-position:center;
+  filter:brightness(0.55) saturate(1.25);
   opacity:0;transition:opacity .6s;
 }
 #p1-vignette{
   position:fixed;inset:0;z-index:2;pointer-events:none;
   background:
-    radial-gradient(ellipse 85% 65% at 50% 50%,transparent 25%,rgba(28,0,18,.30) 100%),
-    linear-gradient(to bottom,rgba(28,0,18,.12) 0%,transparent 30%,transparent 70%,rgba(28,0,18,.20) 100%);
+    radial-gradient(ellipse 90% 70% at 50% 50%,transparent 15%,rgba(28,0,18,.50) 100%),
+    linear-gradient(to bottom,rgba(28,0,18,.30) 0%,rgba(28,0,18,.08) 25%,rgba(28,0,18,.08) 75%,rgba(28,0,18,.38) 100%);
   opacity:0;transition:opacity .6s;
 }
 #p1-grain{
@@ -291,7 +292,7 @@ body.p1-active #p02-petals,body.p1-active #p02-sparkles{display:none;}
 .p1-sdot.d{background:rgba(194,0,95,.5);box-shadow:0 0 6px #C2005F77;}
 
 /* Buttons — ca-main exact */
-.p1-brow{display:flex;gap:14px;justify-content:center;width:100%;transition:justify-content .4s;}
+.p1-brow{display:flex;gap:14px;justify-content:center;width:100%;}
 .p1-brow.centered{justify-content:center;}
 
 .p1-yes{
@@ -306,7 +307,7 @@ body.p1-active #p02-petals,body.p1-active #p02-sparkles{display:none;}
   box-shadow:0 0 0 1px rgba(255,107,157,.45),0 0 10px #FF6B9D,0 0 24px #E8436Acc,0 0 46px #C2005F88,inset 0 0 12px rgba(255,181,200,.10);
 }
 .p1-yes:active{transform:scale(.96);box-shadow:0 0 16px #FF6B9D,0 0 32px #E8436A;}
-.p1-brow.centered .p1-yes{max-width:200px;flex:unset;}
+.p1-brow.centered .p1-yes{max-width:140px;flex:unset;}
 .p1-yes-icon{font-size:1.1em;filter:drop-shadow(0 0 6px #FFB5C8);}
 .p1-yes-ripple{position:absolute;border-radius:50%;width:10px;height:10px;background:rgba(255,244,247,.45);transform:scale(0);pointer-events:none;}
 .p1-yes:active .p1-yes-ripple{animation:rippleOut .5s ease-out forwards;}
@@ -326,7 +327,9 @@ body.p1-active #p02-petals,body.p1-active #p02-sparkles{display:none;}
 .p1-no:active{transform:scale(.93);}
 .p1-no.tele{
   position:fixed!important;z-index:9999!important;margin:0!important;
-  width:110px!important;flex:unset!important;
+  width:100px!important;flex:unset!important;
+  font-size:clamp(11px,3.5vw,13px)!important;
+  padding:clamp(10px,2.6vw,13px) 10px!important;
   transition:left .28s cubic-bezier(.34,1.56,.64,1),top .28s cubic-bezier(.34,1.56,.64,1)!important;
   animation:noPulse 1.6s ease-in-out infinite!important;
 }
@@ -361,7 +364,8 @@ body.p1-active #p02-petals,body.p1-active #p02-sparkles{display:none;}
     0 0 32px #E8436Aee,0 0 60px #C2005Fcc,0 0 95px #6E003077,
     inset 0 0 28px rgba(232,67,106,.07);
   animation:frameGlow 2.2s ease-in-out infinite;
-  padding:6px;
+  padding:0;
+  overflow:hidden;
 }
 @keyframes frameGlow{
   0%,100%{box-shadow:0 0 0 1px rgba(255,107,157,.22),0 0 14px #FF6B9D,0 0 32px #E8436Aee,0 0 60px #C2005Fcc,0 0 95px #6E003077,inset 0 0 28px rgba(232,67,106,.07);}
@@ -372,13 +376,22 @@ body.p1-active #p02-petals,body.p1-active #p02-sparkles{display:none;}
 .vf-tr{top:5px;right:5px;border-width:2px 2px 0 0;border-radius:0 6px 0 0;}
 .vf-bl{bottom:5px;left:5px;border-width:0 0 2px 2px;border-radius:0 0 0 6px;}
 .vf-br{bottom:5px;right:5px;border-width:0 2px 2px 0;border-radius:0 0 6px 0;}
-.p1-vid{display:block;width:100%;height:auto;max-height:52vh;object-fit:contain;border-radius:15px;position:relative;z-index:1;transform:translateZ(0);will-change:transform;}
+.p1-vid{display:block;width:100%;height:auto;max-height:52vh;object-fit:cover;border-radius:18px;position:relative;z-index:1;transform:translateZ(0);will-change:transform;}
 
 /* Success */
 .p1-burst{position:absolute;inset:0;pointer-events:none;display:flex;align-items:center;justify-content:center;}
 .burst-ring{position:absolute;border-radius:50%;border:1.5px solid;animation:burstExpand 1.6s ease-out forwards;opacity:0;}
 @keyframes burstExpand{0%{transform:scale(.1);opacity:.9;}100%{transform:scale(4.5);opacity:0;}}
-.p1-sgif{width:clamp(128px,44vw,195px);height:clamp(128px,44vw,195px);object-fit:contain;border-radius:16px;animation:gf 3s ease-in-out infinite,sg 2s ease-in-out infinite;}
+.p1-sgif{width:clamp(120px,42vw,180px);height:clamp(120px,42vw,180px);object-fit:contain;border-radius:16px;animation:gf 3s ease-in-out infinite,sg 2s ease-in-out infinite;}
+.p1-sgif2{width:clamp(70px,24vw,110px);height:clamp(70px,24vw,110px);object-fit:contain;border-radius:12px;animation:gf 2.6s ease-in-out infinite reverse,sg2 2.5s ease-in-out infinite;}
+@keyframes sg2{
+  0%  {filter:drop-shadow(0 0 5px #FF007Fcc) drop-shadow(0 0 10px #CC005577);}
+  20% {filter:drop-shadow(0 0 12px #FF4DA6ee) drop-shadow(0 0 8px #FF007Faa) drop-shadow(0 0 4px #FF80BF66);}
+  40% {filter:drop-shadow(0 0 10px #FF80BFdd) drop-shadow(0 0 14px #FF4DA688) drop-shadow(0 0 5px #FFB3D955);}
+  60% {filter:drop-shadow(0 0 14px #CC0052ee) drop-shadow(0 0 8px #FF007Fcc) drop-shadow(0 0 4px #66002966);}
+  80% {filter:drop-shadow(0 0 8px #FF4DA6cc) drop-shadow(0 0 12px #FF80BF99) drop-shadow(0 0 5px #FF007F55);}
+  100%{filter:drop-shadow(0 0 5px #FF007Fcc) drop-shadow(0 0 10px #CC005577);}
+}
 @keyframes gf{0%,100%{transform:translateY(0);}50%{transform:translateY(-8px);}}
 @keyframes sg{
   0%{filter:drop-shadow(0 0 5px #E8436Acc) drop-shadow(0 0 10px #C2005F77);}
@@ -429,6 +442,7 @@ body.p1-active #p02-petals,body.p1-active #p02-sparkles{display:none;}
 <body>
 
 <!-- Background systems -->
+<audio id="p1Music" loop preload="auto"><source id="p1MusicSrc" src="" type="audio/mp4"/></audio>
 <div id="blobs"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
 <div id="p1-bg"></div>
 <div id="p1-vignette"></div>
@@ -537,7 +551,7 @@ body.p1-active #p02-petals,body.p1-active #p02-sparkles{display:none;}
 <section id="s-p1-suc" class="p1s">
   <div class="p1-burst" id="p1-burst"></div>
   <img class="p1-sgif" id="p1-sgif" src="" alt="" data-anim="scaleIn" style="--delay:.1s"/>
-  <p class="p1-semoji" data-anim="popIn" style="--delay:.2s">&#x1F497; &#x1F339; &#x1F497;</p>
+  <img class="p1-sgif2" id="p1-sgif2" src="" alt="" data-anim="popIn" style="--delay:.25s"/>
   <div class="p1-div" data-anim="scaleX" style="--delay:.5s"></div>
   <h1 class="p1-stitle" data-anim="fadeUp" style="--delay:.7s">I knew your heart<br/><em>would say yes&hellip;</em></h1>
   <p class="p1-ssub" data-anim="fadeUp" style="--delay:1s">forever &amp; always &#x1F339;</p>
@@ -614,7 +628,11 @@ let P1_GIFS_FB = [
   'https://media.tenor.com/0m_JhMXJEkIAAAAC/cute-cat.gif',
   'https://media.tenor.com/cBMSxCKPwgQAAAAC/love-kawaii.gif',
 ];
-let P1_SUCC_GIF = 'gif6.gif';
+let P1_BG        = 'background.jpg';      // ← Phase 1 background image
+let P1_SUCC_GIF  = 'gif6.gif';
+let P1_SUCC_GIF2 = 'gif7.gif';             // second success gif — upload in customize
+let P1_SUCC_GIF2_FB = 'https://media.tenor.com/JqbHaO7UMiMAAAAC/love-heart.gif';
+let P1_M4A = 'song.m4a';                   // ← replace with your .m4a filename
 let P1_SUCC_FB  = 'https://media.tenor.com/JqbHaO7UMiMAAAAC/love-heart.gif';
 
 const P1_TEXTS = [
@@ -684,6 +702,15 @@ function showP1(id){
   allP1S.forEach(s=>$(s).classList.remove('p1on'));
   $(id).classList.add('p1on');
   document.body.classList.add('p1-active');
+  /* Auto-advance on success screen */
+  clearTimeout(successTimer);
+  if(id==='s-p1-suc'){
+    successTimer=setTimeout(()=>{
+      p1v2.src=P1_V2; p1v2.muted=true; p1v2.currentTime=0; p1v2.load();
+      p1v2.play().then(()=>{p1v2.muted=false;p1v2.volume=1.0;}).catch(()=>{});
+      showP1('s-p1-v2');
+    }, SUCCESS_DELAY_MS);
+  }
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -741,13 +768,16 @@ function buildUpload(){
   P0.forEach((_,i)=>slot(DOT_COLS[i],'Clip '+(i+1),p0Names[i],P0[i].startsWith('blob:'),(url,name)=>{P0[i]=url;p0Names[i]=name.replace(/\.[^.]+$/,'');}));
   sec('BONUS CLIPS — Phase 2');
   P2.forEach((_,i)=>slot(DOT_COLS[i],'Bonus '+(i+1),p2Names[i],P2[i].startsWith('blob:'),(url,name)=>{P2[i]=url;p2Names[i]=name.replace(/\.[^.]+$/,'');}));
+  sec('CONFESSION — Background Image');
+  slot('#FFB5C8','background.jpg',P1_BG.startsWith('blob:')?'Custom':'background.jpg',P1_BG.startsWith('blob:'),(url)=>{P1_BG=url;$('p1-bg').style.backgroundImage='url('+url+')';});
   sec('CONFESSION — Videos');
   slot('#FF6B9D','Video 1 (after No)',P1_V1.startsWith('blob:')?'Custom':'video.mp4',P1_V1.startsWith('blob:'),(url)=>{P1_V1=url;});
   slot('#FF6B9D','Video 2 (ZeroX screen)',P1_V2.startsWith('blob:')?'Custom':'video2.mp4',P1_V2.startsWith('blob:'),(url)=>{P1_V2=url;});
   sec('CONFESSION — Scene GIFs');
   P1_GIFS.forEach((g,i)=>gifSlot(g,'Scene '+(i+1),(url)=>{P1_GIFS[i]=url;gifCache[url]=url;}));
   sec('SUCCESS GIF');
-  gifSlot(P1_SUCC_GIF,'Success Screen',(url)=>{P1_SUCC_GIF=url;});
+  gifSlot(P1_SUCC_GIF,'Success GIF 1 (large)',(url)=>{P1_SUCC_GIF=url;});
+  gifSlot(P1_SUCC_GIF2,'Success GIF 2 (small, valentine colours)',(url)=>{P1_SUCC_GIF2=url;});
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -836,20 +866,33 @@ function startPlayer(clipList, screenId, onDoneCb){
     $(glowId).className='bglow '+GLOW_CLS[idx%GLOW_CLS.length];
     setDot(dotsEl, idx); setClipAura(auraEl, idx);
     ENTRY_CLS.forEach(c=>w.classList.remove(c)); w.classList.remove('eExit'); w.style.opacity='0';
-    el.src=clipList[idx]; el.load();
+    /* Revoke previous blob if any to free memory */
+    if(el.src && el.src.startsWith('blob:') && el.src!==clipList[idx]) try{URL.revokeObjectURL(el.src);}catch(e){}
+    el.src=clipList[idx]||''; el.load();
     const preNext=()=>{const ni=idx+1;if(ni>=clipList.length)return;const nv=sl===0?vbEl:vaEl;if(nv!==el){nv.src=clipList[ni];nv.load();}};
     const cut=()=>{if(abort)return;flash(cfEl);applyAnim(w,'eExit');const n=idx+1;if(n<clipList.length)playClip(n);else setTimeout(()=>{if(!abort)onDoneCb();},EXIT_MS);};
     const onC=()=>{el.removeEventListener('canplay',onC);if(abort)return;w.style.opacity='';applyAnim(w,ENTRY_CLS[idx%ENTRY_CLS.length]);el.play().catch(()=>{});preNext();};
     const onT=()=>{if(!el.duration||el.currentTime<el.duration-TRANS_BEF)return;el.removeEventListener('timeupdate',onT);el.removeEventListener('ended',onE);cut();};
+    const onErr=()=>{el.removeEventListener('error',onErr);if(!abort)cut();};
     const onE=()=>{el.removeEventListener('ended',onE);el.removeEventListener('timeupdate',onT);cut();};
     el.removeEventListener('canplay',onC);el.removeEventListener('timeupdate',onT);el.removeEventListener('ended',onE);
-    el.addEventListener('canplay',onC);el.addEventListener('timeupdate',onT);el.addEventListener('ended',onE);
+    el.addEventListener('canplay',onC);el.addEventListener('timeupdate',onT);el.addEventListener('ended',onE);el.addEventListener('error',onErr);
     const fb=setTimeout(()=>{el.removeEventListener('canplay',onC);if(abort)return;w.style.opacity='';applyAnim(w,ENTRY_CLS[idx%ENTRY_CLS.length]);el.play().catch(()=>{});preNext();},4000);
     el.addEventListener('canplay',()=>clearTimeout(fb),{once:true});
   }
   playClip(0);
-  return ()=>{abort=true;};
+  return ()=>{
+    abort=true;
+    [vaEl,vbEl].forEach(v=>{v.pause();v.removeAttribute('src');v.load();});
+  };
 }
+
+/* ══════════════════════════════════════════════════════════
+   SUCCESS AUTO-ADVANCE
+   Edit SUCCESS_DELAY_MS to change how many ms before auto-next
+══════════════════════════════════════════════════════════ */
+const SUCCESS_DELAY_MS = 5000;  // ← edit this to change auto-advance timing
+let successTimer = null;
 
 /* ══════════════════════════════════════════════════════════
    PHASE 1 — ENTRY
@@ -860,8 +903,14 @@ function enterP1(){
   spawnP1Petals(); spawnP1Sparkles();
   loadScene(0);
   showP1('s-p1-card');
-  /* buffer vid2 silently */
+  /* Buffer vid2 silently */
   p1v2.src=P1_V2; p1v2.muted=true; p1v2.currentTime=0; p1v2.load();
+  /* Start P1 background music */
+  const pm=$('p1Music');
+  $('p1MusicSrc').src=P1_M4A;
+  pm.load();
+  pm.volume=0.75;
+  pm.play().catch(()=>{});
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -921,6 +970,12 @@ p1YesEl.addEventListener('click',()=>{
   simg.onload=()=>{sg.src=simg.src;};
   simg.onerror=()=>{sg.src=P1_SUCC_FB;};
   simg.src=P1_SUCC_GIF;
+  /* Load second success gif */
+  const sg2=$('p1-sgif2');
+  const simg2=new Image();
+  simg2.onload=()=>{sg2.src=simg2.src;};
+  simg2.onerror=()=>{sg2.src=P1_SUCC_GIF2_FB;};
+  simg2.src=P1_SUCC_GIF2;
   showP1('s-p1-suc');
 });
 
@@ -954,6 +1009,10 @@ $('p1-next-suc').addEventListener('click',()=>{
 /* ZeroX & video2 ended → Phase 2 */
 function startPhase2(){
   p1v2.pause();
+  clearTimeout(successTimer);
+  /* Stop P1 music */
+  const pm=$('p1Music'); pm.pause(); pm.currentTime=0;
+  document.body.classList.remove('p1-active');
   spawnDecos(decoLayer2);
   startPlayer(P2,'s-player2',()=>showZS('s-done'));
 }
