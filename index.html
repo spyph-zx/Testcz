@@ -629,10 +629,15 @@ body.p1-active #p02-petals,body.p1-active #p02-sparkles{display:none;}
   100%{transform:translate(calc(-50% + var(--bx)),calc(-50% + var(--by))) scale(.3);opacity:0;}
 }
 
-.p1-v-slot video, #p1v2, .video-container video {
-  width: 100% !important; height: 100% !important; object-fit: cover !important;
-  background: #000 !important; border: none !important;
+.p1-v-slot video, #p1v1, #p1v2, .video-container video, .zs-vid-container video {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  border-radius: inherit;
+  background: #000 !important;
 }
+.p1-v-slot { overflow: hidden !important; position: relative; background: #000; }
+
 </style>
 </head>
 <body>
@@ -1178,13 +1183,22 @@ function enterP1(){
   resetNoBtn();
   spawnP1Petals(); spawnP1Sparkles();
   loadScene(0);
+  
   const pm = $('p1Music');
-  if(pm) { pm.currentTime = 0; pm.play().catch(()=>{}); }
+  if(pm) {
+    pm.currentTime = 0;
+    pm.play().catch(()=>{});
+  }
+
   p1v2.src=P1_V2; p1v2.muted=false; p1v2.load();
+  
+  // Logic: Pause m4a when video plays, resume when it ends
   p1v2.onplay = () => { if(pm && !pm.paused) pm.pause(); };
   p1v2.onended = () => { if(pm) pm.play().catch(()=>{}); };
+
   showP1('s-p1-card');
-});
+}
+);
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -1610,9 +1624,24 @@ function burstAtPoint(x, y, containerId){
 
 
 </script>
+
 <script>
 document.addEventListener('click', function(e) {
-  if (e.target.closest('#measure-btn')) startExperience();
-  if (e.target.closest('#luxe-btn')) $('customize-panel').classList.add('active');
-});</script></body>
+  // Measure Button Fix
+  const mBtn = e.target.closest('#measure-btn') || (e.target.id === 'measure-btn');
+  if (mBtn) {
+    e.preventDefault();
+    if(typeof startExperience === 'function') startExperience();
+  }
+  
+  // Customize Button Fix
+  const lBtn = e.target.closest('#luxe-btn') || (e.target.id === 'luxe-btn');
+  if (lBtn) {
+    e.preventDefault();
+    const panel = $('customize-panel');
+    if(panel) panel.classList.add('active');
+  }
+});
+</script>
+</body>
 </html>
