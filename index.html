@@ -1110,9 +1110,12 @@ function startPlayer(clipList, screenId, onDoneCb, isP2flag){
     $(glowId).className='bglow '+GLOW_CLS[idx%GLOW_CLS.length];
     setDot(dotsEl, idx); setClipAura(auraEl, idx);
     ENTRY_CLS.forEach(c=>w.classList.remove(c)); w.classList.remove('eExit'); w.style.opacity='0';
-    /* Revoke previous blob if any to free memory */
-    if(el.src && el.src.startsWith('blob:') && el.src!==clipList[idx]) try{URL.revokeObjectURL(el.src);}catch(e){}
-    el.src=clipList[idx]||''; el.load();
+    /* Revoke previous blob if switching to a different blob src */
+    const newSrc=clipList[idx]||'';
+    if(el.src && el.src.startsWith('blob:') && el.src!==newSrc) try{URL.revokeObjectURL(el.src);}catch(e){}
+    /* Skip reload if preNext already buffered this clip */
+    const alreadyReady = (el.src===newSrc) && el.readyState>=2;
+    if(!alreadyReady){ el.src=newSrc; el.load(); }
     const preNext=()=>{const ni=idx+1;if(ni>=clipList.length)return;const nv=sl===0?vbEl:vaEl;if(nv!==el){nv.src=clipList[ni];nv.load();}};
     const cut=()=>{
       if(abort)return;
@@ -1126,27 +1129,24 @@ function startPlayer(clipList, screenId, onDoneCb, isP2flag){
       }
     };
     /* P2 m4a is started cleanly in showRegardsPage — no pre-start here */
-    const onC=()=>{el.removeEventListener('canplay',onC);if(abort)return;w.style.opacity='';applyAnim(w,ENTRY_CLS[idx%ENTRY_CLS.length]);el.play().catch(()=>{});preNext();};
+    const startEl=()=>{if(abort)return;w.style.opacity='';applyAnim(w,ENTRY_CLS[idx%ENTRY_CLS.length]);el.play().catch(()=>{});preNext();};
+    const onC=()=>{el.removeEventListener('canplay',onC);startEl();};
     const onT=()=>{
       if(!el.duration||el.currentTime<el.duration-TRANS_BEF)return;
       el.removeEventListener('timeupdate',onT);el.removeEventListener('ended',onE);
-      /* Pre-start outro music at last clip of P2 */
-      if(isP2flag && idx===clipList.length-1){
-        try{
-          const om=new Audio(OUTRO_M4A);
-          om.volume=0;om.preload='auto';om.load();
-          om.addEventListener('canplaythrough',()=>{om.play().catch(()=>{});},{ once:true });
-          window._outroMusicPreload=om;
-        }catch(e){}
-      }
       cut();
     };
     const onErr=()=>{el.removeEventListener('error',onErr);if(!abort)cut();};
     const onE=()=>{el.removeEventListener('ended',onE);el.removeEventListener('timeupdate',onT);cut();};
     el.removeEventListener('canplay',onC);el.removeEventListener('timeupdate',onT);el.removeEventListener('ended',onE);
     el.addEventListener('canplay',onC);el.addEventListener('timeupdate',onT);el.addEventListener('ended',onE);el.addEventListener('error',onErr);
-    const fb=setTimeout(()=>{el.removeEventListener('canplay',onC);if(abort)return;w.style.opacity='';applyAnim(w,ENTRY_CLS[idx%ENTRY_CLS.length]);el.play().catch(()=>{});preNext();},1800);
-    el.addEventListener('canplay',()=>clearTimeout(fb),{once:true});
+    if(alreadyReady){
+      el.removeEventListener('canplay',onC);
+      startEl();
+    } else {
+      const fb=setTimeout(()=>{el.removeEventListener('canplay',onC);startEl();},1800);
+      el.addEventListener('canplay',()=>clearTimeout(fb),{once:true});
+    }
   }
   playClip(0);
   return ()=>{
@@ -1166,20 +1166,32 @@ let successTimer = null;
    PHASE 1 — ENTRY
 ══════════════════════════════════════════════════════════ */
 function enterP1(){
-  p1Step=0; p1FirstNo=true; p1NoTele=false; p1NoLX=p1NoLY=-1;
+  /* p1FirstNo=false because we auto-show v1 immediately — No on card goes to next scene */
+  p1Step=0; p1FirstNo=false; p1NoTele=false; p1NoLX=p1NoLY=-1;
   resetNoBtn();
   spawnP1Petals(); spawnP1Sparkles();
   loadScene(0);
-  showP1('s-p1-card');
-  /* Buffer vid2 silently — frame CSS (opacity:0) already hides it, don't set inline opacity on video */
+  /* Buffer vid2 silently — frame CSS (opacity:0) already hides it */
   p1v2.src=P1_V2; p1v2.muted=true; p1v2.currentTime=0; p1v2.load();
-  /* Start P1 background music — loop so it never stops mid-confession */
+  /* Start P1 music — pause it instantly since v1 plays first */
   const pm=$('p1Music');
   pm.loop=true;
   $('p1MusicSrc').src=P1_M4A;
   pm.load();
   pm.volume=0.75;
   pm.play().catch(()=>{});
+  pm.pause();
+  /* Auto-trigger v1 immediately at phase-1 entry */
+  const vf1=p1v1.parentElement;
+  vf1.style.opacity='0';
+  p1v1.src=P1_V1; p1v1.currentTime=0;
+  p1v1.addEventListener('canplay',function onV1Auto(){
+    p1v1.removeEventListener('canplay',onV1Auto);
+    vf1.style.opacity='1';
+  },{once:true});
+  setTimeout(()=>{ vf1.style.opacity='1'; },900);
+  p1v1.play().catch(()=>{});
+  showP1('s-p1-v1');
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -1329,6 +1341,10 @@ function showRegardsPage(){
     pm2.load();
     pm2.volume=0.85;
     pm2.play().catch(()=>{});
+
+    /* Wire ZeroX button to open the configured link */
+    const zxBtn=$('zerox-outro-btn');
+    if(zxBtn){ zxBtn.onclick=()=>{ const url=window._ZEROX_URL_OVERRIDE||ZEROX_URL; if(url&&url.indexOf('your-zerox')===-1){ window.open(url,'_blank','noopener'); } }; }
 
     /* Rainbow border on regards vid */
     startOutroBorder();
