@@ -300,38 +300,20 @@ body.p1-active #p02-petals,body.p1-active #p02-sparkles{display:none;}
 .p1-brow{display:flex;gap:14px;justify-content:center;width:100%;}
 .p1-brow.centered{justify-content:center;}
 
-/* Yes Button - Updated to match No button size */
-.p1-yes {
-  flex: 0 0 auto;
-  /* Exact same width as No button */
-  width: clamp(105px, 30vw, 125px); 
-  min-width: 105px;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  /* Same padding as No button */
-  padding: clamp(12px, 3.2vw, 15px) 10px; 
-  border-radius: 50px;
-  border: 2px solid;
-  font-family: var(--font-sans);
-  font-size: clamp(13px, 4vw, 15px);
-  font-weight: 600;
-  letter-spacing: .04em;
-  cursor: pointer;
-  overflow: hidden;
-  transition: transform .22s var(--ease-bounce), box-shadow .22s ease;
-  -webkit-tap-highlight-color: transparent;
-  outline: none;
-  background: linear-gradient(135deg, rgba(232, 67, 106, .85) 0%, rgba(194, 0, 95, .90) 100%);
-  border-color: #FF6B9D;
-  color: var(--ivory);
-  text-shadow: 0 0 8px rgba(255, 244, 247, .6);
-  box-shadow: 0 0 0 1px rgba(255, 107, 157, .45), 0 0 10px #FF6B9D, 0 0 24px #E8436Acc, 0 0 46px #C2005F88, inset 0 0 12px rgba(255, 181, 200, .10);
+.p1-yes{
+  flex:0 0 auto;width:clamp(130px,38vw,155px);min-width:130px;
+  position:relative;display:flex;align-items:center;justify-content:center;gap:6px;
+  padding:clamp(12px,3.2vw,15px) 18px;border-radius:50px;border:2px solid;
+  font-family:var(--font-sans);font-size:clamp(13px,4vw,15px);font-weight:600;letter-spacing:.04em;
+  cursor:pointer;overflow:hidden;
+  transition:transform .22s var(--ease-bounce),box-shadow .22s ease;
+  -webkit-tap-highlight-color:transparent;outline:none;
+  background:linear-gradient(135deg,rgba(232,67,106,.85) 0%,rgba(194,0,95,.90) 100%);
+  border-color:#FF6B9D;color:var(--ivory);text-shadow:0 0 8px rgba(255,244,247,.6);
+  box-shadow:0 0 0 1px rgba(255,107,157,.45),0 0 10px #FF6B9D,0 0 24px #E8436Acc,0 0 46px #C2005F88,inset 0 0 12px rgba(255,181,200,.10);
 }
 .p1-yes:active{transform:scale(.96);box-shadow:0 0 16px #FF6B9D,0 0 32px #E8436A;}
-.p1-brow.centered .p1-yes{width:clamp(105px,30vw,125px);}
+.p1-brow.centered .p1-yes{width:clamp(130px,38vw,155px);}
 .p1-yes-icon{font-size:1.1em;filter:drop-shadow(0 0 6px #FFB5C8);}
 .p1-yes-ripple{position:absolute;border-radius:50%;width:10px;height:10px;background:rgba(255,244,247,.45);transform:scale(0);pointer-events:none;}
 .p1-yes:active .p1-yes-ripple{animation:rippleOut .5s ease-out forwards;}
@@ -1175,6 +1157,16 @@ function enterP1(){
   showP1('s-p1-card');
   /* Buffer vid2 silently */
   p1v2.src=P1_V2; p1v2.muted=true; p1v2.currentTime=0; p1v2.load();
+  /* Auto-sync: Video play/end logic for Phase 1 */
+  p1v2.onplay = () => {
+    const pm = $('p1Music');
+    if (pm && !pm.paused) pm.pause();
+  };
+  p1v2.onended = () => {
+    const pm = $('p1Music');
+    if (pm) pm.play().catch(()=>{});
+  };
+
   /* Start P1 background music */
   const pm=$('p1Music');
   $('p1MusicSrc').src=P1_M4A;
