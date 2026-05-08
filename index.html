@@ -629,17 +629,10 @@ body.p1-active #p02-petals,body.p1-active #p02-sparkles{display:none;}
   100%{transform:translate(calc(-50% + var(--bx)),calc(-50% + var(--by))) scale(.3);opacity:0;}
 }
 
-/* Fix for video slots to prevent YT ratio flickering and match borders */
-.p1-v-slot, #p1v1, #p1v2, .video-container video, .zs-vid-container video {
-  width: 100% !important;
-  height: 100% !important;
-  object-fit: cover !important; 
-  border-radius: inherit;
-  background: transparent !important;
-  border: none !important;
+.p1-v-slot video, #p1v2, .video-container video {
+  width: 100% !important; height: 100% !important; object-fit: cover !important;
+  background: #000 !important; border: none !important;
 }
-.p1-v-slot { overflow: hidden; position: relative; }
-
 </style>
 </head>
 <body>
@@ -1179,33 +1172,19 @@ let successTimer = null;
 /* ══════════════════════════════════════════════════════════
    PHASE 1 — ENTRY
 ══════════════════════════════════════════════════════════ */
+
 function enterP1(){
-  const pm = $('p1Music');
-  const p1v = $('p1v2'); // Primary P1 video slot
-
-  if(pm) pm.play().catch(()=>{});
-
-  if(p1v && pm) {
-    p1v.onplay = () => { pm.pause(); };
-    p1v.onended = () => { 
-       // Resume m4a after first video ends
-       pm.play().catch(()=>{}); 
-    };
-  }
-
   p1Step=0; p1FirstNo=true; p1NoTele=false; p1NoLX=p1NoLY=-1;
   resetNoBtn();
   spawnP1Petals(); spawnP1Sparkles();
   loadScene(0);
+  const pm = $('p1Music');
+  if(pm) { pm.currentTime = 0; pm.play().catch(()=>{}); }
+  p1v2.src=P1_V2; p1v2.muted=false; p1v2.load();
+  p1v2.onplay = () => { if(pm && !pm.paused) pm.pause(); };
+  p1v2.onended = () => { if(pm) pm.play().catch(()=>{}); };
   showP1('s-p1-card');
-  /* Buffer vid2 silently */
-  p1v2.src=P1_V2; p1v2.muted=true; p1v2.currentTime=0; p1v2.load();
-  /* Start P1 background music */
-  const pm=$('p1Music');
-  $('p1MusicSrc').src=P1_M4A;
-  pm.load();
-  pm.volume=0.75;
-  pm.play().catch(()=>{});
+});
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -1632,14 +1611,8 @@ function burstAtPoint(x, y, containerId){
 
 </script>
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-  // Customize Button (Luxe)
-  const lb = $('luxe-btn');
-  if(lb) lb.onclick = (e) => { e.preventDefault(); $('customize-panel').classList.add('active'); };
-
-  // Measure Button (Begin Experience)
-  const mb = $('measure-btn') || document.querySelector('.luxe-btn-main'); 
-  if(mb) mb.onclick = (e) => { e.preventDefault(); startExperience(); };
-});
-</script></body>
+document.addEventListener('click', function(e) {
+  if (e.target.closest('#measure-btn')) startExperience();
+  if (e.target.closest('#luxe-btn')) $('customize-panel').classList.add('active');
+});</script></body>
 </html>
