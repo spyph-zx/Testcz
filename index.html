@@ -816,8 +816,11 @@ body.p1-active #p02-petals,body.p1-active #p02-sparkles{display:none;}
   <div class="cdots" id="cdots2"></div>
 </section>
 
-<section id="s-done" class="zs s-outro" style="padding:0;overflow:hidden;background:#000;">
+<section id="s-outro" class="zs s-outro" style="padding:0;overflow:hidden;background:#000;">
+  <!-- Curtain overlay -->
+  <div id="outroCurtain" style="position:fixed;inset:0;z-index:9000;pointer-events:none;background:#fff;opacity:0;"></div>
   <!-- Outro ambient layers -->
+  <div id="outroHearts" style="position:absolute;inset:0;z-index:6;pointer-events:none;overflow:hidden;"></div>
   <div id="outroPetals" class="outro-petals-layer"></div>
   <!-- Multi-colour glowing border frame -->
   <div class="outro-frame-wrap">
@@ -1022,12 +1025,29 @@ function buildUpload(){
   P1_GIFS.forEach((g,i)=>gifSlot(g,'Scene '+(i+1),(url)=>{P1_GIFS[i]=url;gifCache[url]=url;}));
   sec('OUTRO PAGE');
   slot('#00F2FF','Outro Video (final page loop)',OUTRO_VID.startsWith('blob:')?'Custom':'outro.mp4',OUTRO_VID.startsWith('blob:'),(url)=>{OUTRO_VID=url;const ov=$('outroVid');if(ov&&ov.src){ov.src=url;ov.load();}});
-  /* ZEROX URL display in upload panel */
-  const zuRow=document.createElement('div');zuRow.className='slot-row';zuRow.style.flexDirection='column';zuRow.style.alignItems='flex-start';zuRow.style.gap='4px';
-  const zuLbl=document.createElement('span');zuLbl.className='upl-sec';zuLbl.style.cssText='padding:8px 0 2px;margin:0;border:none;';zuLbl.textContent='ZEROX BUTTON URL';
-  const zuInp=document.createElement('input');zuInp.type='url';zuInp.placeholder='https://your-zerox-link-here.com';zuInp.value=ZEROX_URL.includes('your-zerox')?'':ZEROX_URL;zuInp.style.cssText='width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:8px 12px;color:#fff;font-family:var(--font-main);font-size:.8rem;outline:none;';
-  zuInp.addEventListener('input',()=>{window._ZEROX_URL_OVERRIDE=zuInp.value.trim()||ZEROX_URL;if($('zerox-outro-btn'))$('zerox-outro-btn').dataset.url=window._ZEROX_URL_OVERRIDE;});
-  zuRow.append(zuLbl,zuInp); sc.appendChild(zuRow);
+  /* ZEROX URL input in upload panel */
+  (function(){
+    const urlSec = document.createElement('div');
+    urlSec.className = 'upl-sec';
+    urlSec.textContent = 'ZEROX BUTTON URL';
+    sc.appendChild(urlSec);
+    const urlRow = document.createElement('label');
+    urlRow.className = 'slot-row';
+    urlRow.style.cssText = 'flex-direction:column;align-items:flex-start;gap:4px;cursor:default;';
+    const urlInp = document.createElement('input');
+    urlInp.type = 'url';
+    urlInp.placeholder = 'https://your-link-here.com';
+    urlInp.value = (typeof ZEROX_URL !== 'undefined' && ZEROX_URL.indexOf('your-zerox') === -1) ? ZEROX_URL : '';
+    urlInp.style.cssText = 'width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:9px 12px;color:#fff;font-size:.82rem;outline:none;-webkit-appearance:none;';
+    urlInp.addEventListener('input', function(){
+      window._ZEROX_URL_OVERRIDE = urlInp.value.trim();
+    });
+    const urlHint = document.createElement('span');
+    urlHint.className = 's-lbl';
+    urlHint.textContent = 'Opened when ZeroX button is tapped on final page';
+    urlRow.append(urlInp, urlHint);
+    sc.appendChild(urlRow);
+  })();
   sec('REGARDS PAGE');
   slot('#00f2ff','Regards MP4 (last page)',LAST_VID.startsWith('blob:')?'Custom':'last.mp4',LAST_VID.startsWith('blob:'),(url)=>{LAST_VID=url;});
   slot('#ffd700','Regards M4A (loop music)',P2_M4A.startsWith('blob:')?'Custom':'outro.m4a',P2_M4A.startsWith('blob:'),(url)=>{P2_M4A=url;});
