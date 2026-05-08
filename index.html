@@ -913,11 +913,12 @@ function showP1(id){
   clearTimeout(successTimer);
   if(id==='s-p1-suc'){
     successTimer=setTimeout(()=>{
-      /* P1 music already ended naturally (last second played in leaveV1) — just ensure it's stopped */
+      /* Stop P1 music before vid2 */
       const pm=$('p1Music'); pm.pause(); pm.currentTime=0;
-      /* Hide entire v2 frame+clip until video is ready — reveal together instantly */
+      /* Hide entire v2 frame until video ready — clear any inline opacity on the video itself */
       const vf2=p1v2.parentElement;
       vf2.style.opacity='0';
+      p1v2.style.opacity='';
       p1v2.src=P1_V2; p1v2.muted=true; p1v2.currentTime=0; p1v2.load();
       p1v2.addEventListener('canplay',function onV2Ready(){
         p1v2.removeEventListener('canplay',onV2Ready);
@@ -953,7 +954,7 @@ const DOT_COLS=['#ff007f','#00f2ff','#7000ff','#ffd700','#ffffff'];
 function buildUpload(){
   const sc=$('up-scroll'); sc.innerHTML='';
   const sec=t=>{const d=document.createElement('div');d.className='upl-sec';d.textContent=t;sc.appendChild(d);};
-  const slot=(dotCol,lbl,name,custom,onFile)=>{
+  const slot=(dotCol,lbl,name,custom,onFile,accept='video/*')=>{
     const lel=document.createElement('label');lel.className='slot-row';
     const dot=document.createElement('div');dot.className='s-dot';dot.style.cssText=`background:${dotCol};box-shadow:0 0 7px ${dotCol};`;
     const inf=document.createElement('div');inf.className='s-info';
@@ -961,7 +962,7 @@ function buildUpload(){
     const n=document.createElement('span');n.className='s-name';n.textContent=name;
     inf.append(l,n);
     const act=document.createElement('span');act.className='s-act';act.textContent=custom?'✓ Custom':'Replace →';
-    const fi=document.createElement('input');fi.type='file';fi.className='slot-file';fi.accept='video/*';
+    const fi=document.createElement('input');fi.type='file';fi.className='slot-file';fi.accept=accept;
     fi.addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const url=URL.createObjectURL(f);blobUrls.push(url);n.textContent=f.name.replace(/\.[^.]+$/,'');act.textContent='✓ Custom';onFile(url,f.name);});
     lel.append(dot,inf,act,fi);sc.appendChild(lel);
   };
@@ -1015,7 +1016,9 @@ function buildUpload(){
   })();
   sec('REGARDS PAGE');
   slot('#00f2ff','Regards MP4 (last page)',LAST_VID.startsWith('blob:')?'Custom':'last.mp4',LAST_VID.startsWith('blob:'),(url)=>{LAST_VID=url;});
-  slot('#ffd700','Regards M4A (loop music)',P2_M4A.startsWith('blob:')?'Custom':'outro.m4a',P2_M4A.startsWith('blob:'),(url)=>{P2_M4A=url;});
+  slot('#ffd700','Regards M4A (loop music)',P2_M4A.startsWith('blob:')?'Custom':'outro.m4a',P2_M4A.startsWith('blob:'),(url)=>{P2_M4A=url;},'audio/*,.m4a,.mp3,.aac');
+  sec('PHASE-1 MUSIC');
+  slot('#E8436A','Phase-1 Song (m4a)',P1_M4A.startsWith('blob:')?'Custom':'song.m4a',P1_M4A.startsWith('blob:'),(url)=>{P1_M4A=url;},'audio/*,.m4a,.mp3,.aac');
   sec('SUCCESS GIF');
   gifSlot(P1_SUCC_GIF,'Success GIF 1 (large)',(url)=>{P1_SUCC_GIF=url;});
   gifSlot(P1_SUCC_GIF2,'Success GIF 2 (small, valentine colours)',(url)=>{P1_SUCC_GIF2=url;});
@@ -1183,8 +1186,7 @@ function enterP1(){
   spawnP1Petals(); spawnP1Sparkles();
   loadScene(0);
   showP1('s-p1-card');
-  /* Buffer vid2 silently */
-  p1v2.style.opacity='0';
+  /* Buffer vid2 silently — frame CSS (opacity:0) already hides it, don't set inline opacity on video */
   p1v2.src=P1_V2; p1v2.muted=true; p1v2.currentTime=0; p1v2.load();
   /* Start P1 background music — no loop, will end naturally after leaveV1 seeks to last second */
   const pm=$('p1Music');
@@ -1292,26 +1294,9 @@ p1v1.addEventListener('ended',leaveV1);
 function leaveV1(){
   p1v1.pause();
   p1v1.parentElement.style.opacity='0';
-  /* Resume P1 music at the last 1 second so it ends naturally before mp42p1 starts */
+  /* Resume P1 music instantly from where it was paused */
   const pm=$('p1Music');
-  if(pm.paused){
-    pm.loop=false;
-    const doResume=()=>{
-      if(pm.duration && !isNaN(pm.duration) && pm.duration>1){
-        pm.currentTime=pm.duration-1;
-      }
-      pm.play().catch(()=>{});
-    };
-    /* duration already available (was playing before pause) — use it directly */
-    if(pm.duration && !isNaN(pm.duration) && pm.duration>1){
-      doResume();
-    } else {
-      /* Rare: metadata not yet decoded — wait then resume */
-      pm.addEventListener('loadedmetadata',doResume,{once:true});
-      /* Also force a play so the browser resolves metadata */
-      pm.volume=0; pm.play().then(()=>{ pm.pause(); pm.volume=0.75; doResume(); }).catch(doResume);
-    }
-  }
+  if(pm.paused){ pm.play().catch(()=>{}); }
   loadScene(Math.min(p1Step+1,P1_TEXTS.length-1));
   showP1('s-p1-card');
 }
