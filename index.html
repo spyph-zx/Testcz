@@ -1125,22 +1125,7 @@ function startPlayer(clipList, screenId, onDoneCb, isP2flag){
         setTimeout(()=>{ if(!abort)onDoneCb(); },EXIT_MS);
       }
     };
-    /* Start P2 m4a at last 1s of the LAST P2 clip */
-    const onTLast=()=>{
-      if(!el.duration||idx!==clipList.length-1)return;
-      if(el.currentTime >= el.duration-1){
-        el.removeEventListener('timeupdate',onTLast);
-        const pm2=$('p2Music');
-        if(pm2&&$('p2MusicSrc').src!==P2_M4A){
-          $('p2MusicSrc').src=P2_M4A; pm2.load();
-        }
-        if(pm2&&pm2.paused){ pm2.volume=0; pm2.play().catch(()=>{});
-          /* Fade in quickly */
-          let v=0; const fi=setInterval(()=>{ v=Math.min(v+.05,.8); pm2.volume=v; if(v>=.8)clearInterval(fi); },60);
-        }
-      }
-    };
-    if(idx===clipList.length-1) el.addEventListener('timeupdate',onTLast);
+    /* P2 m4a is started cleanly in showRegardsPage — no pre-start here */
     const onC=()=>{el.removeEventListener('canplay',onC);if(abort)return;w.style.opacity='';applyAnim(w,ENTRY_CLS[idx%ENTRY_CLS.length]);el.play().catch(()=>{});preNext();};
     const onT=()=>{
       if(!el.duration||el.currentTime<el.duration-TRANS_BEF)return;
@@ -1188,9 +1173,9 @@ function enterP1(){
   showP1('s-p1-card');
   /* Buffer vid2 silently — frame CSS (opacity:0) already hides it, don't set inline opacity on video */
   p1v2.src=P1_V2; p1v2.muted=true; p1v2.currentTime=0; p1v2.load();
-  /* Start P1 background music — no loop, will end naturally after leaveV1 seeks to last second */
+  /* Start P1 background music — loop so it never stops mid-confession */
   const pm=$('p1Music');
-  pm.loop=false;
+  pm.loop=true;
   $('p1MusicSrc').src=P1_M4A;
   pm.load();
   pm.volume=0.75;
@@ -1336,16 +1321,14 @@ function showRegardsPage(){
       }
     });
 
-    /* P2 m4a — starts at last 1s of 5th clip, already queued in startPlayer.
-       Here we just ensure it's playing. Start instantly. */
+    /* Last page m4a — start instantly as phase-2 5th clip ends, loop forever */
     const pm2=$('p2Music');
-    /* Set P2/outro m4a and play immediately */
-    $('p2MusicSrc').src = OUTRO_M4A;
+    pm2.pause(); pm2.currentTime=0;
+    $('p2MusicSrc').src = P2_M4A;
+    pm2.loop=true;
     pm2.load();
-    pm2.volume = 0;
+    pm2.volume=0.85;
     pm2.play().catch(()=>{});
-    /* Fade in quickly */
-    let _v=0; const _fi=setInterval(()=>{ _v=Math.min(_v+.06,.85); pm2.volume=_v; if(_v>=.85)clearInterval(_fi); },50);
 
     /* Rainbow border on regards vid */
     startOutroBorder();
