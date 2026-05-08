@@ -391,6 +391,8 @@ body.p1-active #p02-petals,body.p1-active #p02-sparkles{display:none;}
   animation:frameGlow 2.2s ease-in-out infinite;
   padding:0;
   overflow:hidden;
+  opacity:0;
+  transition:opacity .15s ease;
 }
 @keyframes frameGlow{
   0%,100%{box-shadow:0 0 0 1px rgba(255,107,157,.22),0 0 14px #FF6B9D,0 0 32px #E8436Aee,0 0 60px #C2005Fcc,0 0 95px #6E003077,inset 0 0 28px rgba(232,67,106,.07);}
@@ -401,7 +403,7 @@ body.p1-active #p02-petals,body.p1-active #p02-sparkles{display:none;}
 .vf-tr{top:5px;right:5px;border-width:2px 2px 0 0;border-radius:0 6px 0 0;}
 .vf-bl{bottom:5px;left:5px;border-width:0 0 2px 2px;border-radius:0 0 0 6px;}
 .vf-br{bottom:5px;right:5px;border-width:0 2px 2px 0;border-radius:0 0 6px 0;}
-.p1-vid{display:block;width:100%;height:auto;max-height:52vh;object-fit:cover;border-radius:18px;position:relative;z-index:1;transform:translateZ(0);will-change:transform;opacity:0;transition:opacity .18s ease;}
+.p1-vid{display:block;width:100%;height:auto;max-height:52vh;object-fit:cover;border-radius:18px;position:relative;z-index:1;transform:translateZ(0);will-change:transform;}
 
 /* Success */
 .p1-burst{position:absolute;inset:0;pointer-events:none;display:flex;align-items:center;justify-content:center;}
@@ -913,14 +915,15 @@ function showP1(id){
     successTimer=setTimeout(()=>{
       /* P1 music already ended naturally (last second played in leaveV1) — just ensure it's stopped */
       const pm=$('p1Music'); pm.pause(); pm.currentTime=0;
-      /* Set up p1v2 with opacity fade-in to avoid flash */
-      p1v2.style.opacity='0';
+      /* Hide entire v2 frame+clip until video is ready — reveal together instantly */
+      const vf2=p1v2.parentElement;
+      vf2.style.opacity='0';
       p1v2.src=P1_V2; p1v2.muted=true; p1v2.currentTime=0; p1v2.load();
       p1v2.addEventListener('canplay',function onV2Ready(){
         p1v2.removeEventListener('canplay',onV2Ready);
-        p1v2.style.opacity='1';
+        vf2.style.opacity='1';
       },{once:true});
-      setTimeout(()=>{ p1v2.style.opacity='1'; },800);
+      setTimeout(()=>{ vf2.style.opacity='1'; },900);
       p1v2.play().then(()=>{p1v2.muted=false;p1v2.volume=1.0;}).catch(()=>{});
       showP1('s-p1-v2');
     }, SUCCESS_DELAY_MS);
@@ -1266,14 +1269,16 @@ function handleNo(){
     p1FirstNo=false;
     /* Pause music while vid1 plays */
     const pm=$('p1Music'); pm.pause();
-    p1v1.style.opacity='0';
+    const vf1=p1v1.parentElement;
+    vf1.style.opacity='0';
     p1v1.src=P1_V1; p1v1.currentTime=0;
+    /* Reveal entire frame+clip together the moment video is ready */
     p1v1.addEventListener('canplay',function onV1Ready(){
       p1v1.removeEventListener('canplay',onV1Ready);
-      p1v1.style.opacity='1';
+      vf1.style.opacity='1';
     },{once:true});
-    /* fallback: show after 800ms even if canplay hasn't fired */
-    setTimeout(()=>{ p1v1.style.opacity='1'; },800);
+    /* Fallback: reveal after 900ms if canplay is slow */
+    setTimeout(()=>{ vf1.style.opacity='1'; },900);
     p1v1.play().catch(()=>{});
     showP1('s-p1-v1');
     return;
@@ -1286,22 +1291,25 @@ function handleNo(){
 p1v1.addEventListener('ended',leaveV1);
 function leaveV1(){
   p1v1.pause();
-  p1v1.style.opacity='0';
+  p1v1.parentElement.style.opacity='0';
   /* Resume P1 music at the last 1 second so it ends naturally before mp42p1 starts */
   const pm=$('p1Music');
-  if(pm.src && pm.paused){
+  if(pm.paused){
     pm.loop=false;
-    const resume=()=>{
-      if(pm.duration && !isNaN(pm.duration)){
-        pm.currentTime=Math.max(0, pm.duration-1);
+    const doResume=()=>{
+      if(pm.duration && !isNaN(pm.duration) && pm.duration>1){
+        pm.currentTime=pm.duration-1;
       }
       pm.play().catch(()=>{});
     };
-    if(pm.duration && !isNaN(pm.duration)){
-      resume();
+    /* duration already available (was playing before pause) — use it directly */
+    if(pm.duration && !isNaN(pm.duration) && pm.duration>1){
+      doResume();
     } else {
-      pm.addEventListener('loadedmetadata',resume,{once:true});
-      pm.play().catch(()=>{});
+      /* Rare: metadata not yet decoded — wait then resume */
+      pm.addEventListener('loadedmetadata',doResume,{once:true});
+      /* Also force a play so the browser resolves metadata */
+      pm.volume=0; pm.play().then(()=>{ pm.pause(); pm.volume=0.75; doResume(); }).catch(doResume);
     }
   }
   loadScene(Math.min(p1Step+1,P1_TEXTS.length-1));
