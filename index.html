@@ -300,7 +300,7 @@ body.p1-active #p02-petals,body.p1-active #p02-sparkles{display:none;}
 .p1-brow{display:flex;gap:14px;justify-content:center;width:100%;}
 .p1-brow.centered{justify-content:center;}
 
-.p1-yes{
+.p1-yes_old{
   flex:0 0 auto;width:clamp(130px,38vw,155px);min-width:130px;
   position:relative;display:flex;align-items:center;justify-content:center;gap:6px;
   padding:clamp(12px,3.2vw,15px) 18px;border-radius:50px;border:2px solid;
@@ -313,13 +313,13 @@ body.p1-active #p02-petals,body.p1-active #p02-sparkles{display:none;}
   box-shadow:0 0 0 1px rgba(255,107,157,.45),0 0 10px #FF6B9D,0 0 24px #E8436Acc,0 0 46px #C2005F88,inset 0 0 12px rgba(255,181,200,.10);
 }
 .p1-yes:active{transform:scale(.96);box-shadow:0 0 16px #FF6B9D,0 0 32px #E8436A;}
-.p1-brow.centered .p1-yes{width:clamp(130px,38vw,155px);}
+.p1-brow.centered .p1-yes_old{width:clamp(130px,38vw,155px);}
 .p1-yes-icon{font-size:1.1em;filter:drop-shadow(0 0 6px #FFB5C8);}
 .p1-yes-ripple{position:absolute;border-radius:50%;width:10px;height:10px;background:rgba(255,244,247,.45);transform:scale(0);pointer-events:none;}
 .p1-yes:active .p1-yes-ripple{animation:rippleOut .5s ease-out forwards;}
 @keyframes rippleOut{to{transform:scale(28);opacity:0;}}
 
-.p1-no{
+.p1-no_old{
   flex:0 0 auto;width:clamp(105px,30vw,125px);min-width:105px;
   position:relative;display:flex;align-items:center;justify-content:center;
   padding:clamp(12px,3.2vw,15px) 10px;border-radius:50px;border:2px solid;
@@ -610,6 +610,32 @@ body.p1-active #p02-petals,body.p1-active #p02-sparkles{display:none;}
   60% {opacity:.8;}
   100%{transform:translate(calc(-50% + var(--bx)),calc(-50% + var(--by))) scale(.3);opacity:0;}
 }
+
+.p1-yes {
+  flex: 0 0 auto !important;
+  width: 155px !important; /* Fixed width */
+  min-width: 155px !important;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 20px;
+  border-radius: 50px;
+  border: 2px solid;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  z-index: 10;
+}
+.p1-no {
+  flex: 0 1 auto !important; /* Auto width */
+  width: auto !important;
+  min-width: 80px;
+  padding: 12px 24px;
+  /* rest of the styles are inherited */
+}
+
 </style>
 </head>
 <body>
@@ -896,6 +922,23 @@ function showP1(id){
       /* Stop P1 music before vid2 */
       const pm=$('p1Music'); pm.pause(); pm.currentTime=0;
       p1v2.src=P1_V2; p1v2.muted=true; p1v2.currentTime=0; p1v2.load();
+  p1v2.onplay = () => {
+    const pm = $('p1Music');
+    if (pm && !pm.paused) {
+      console.log("Video started, pausing background music...");
+      pm.pause();
+    }
+  };
+  p1v2.onended = () => {
+    // Only resume if we are still in Phase 1 (checking currentStep)
+    // and if it's NOT the last video of Phase 1
+    if (typeof currentStep !== 'undefined' && currentStep < 1) { 
+       const pm = $('p1Music');
+       if (pm) pm.play().catch(()=>{});
+    }
+  };
+
+  const pm = $("p1Music"); if(pm) pm.play().catch(()=>{});
       p1v2.play().then(()=>{p1v2.muted=false;p1v2.volume=1.0;}).catch(()=>{});
       showP1('s-p1-v2');
     }, SUCCESS_DELAY_MS);
@@ -1157,16 +1200,23 @@ function enterP1(){
   showP1('s-p1-card');
   /* Buffer vid2 silently */
   p1v2.src=P1_V2; p1v2.muted=true; p1v2.currentTime=0; p1v2.load();
-  /* Auto-sync: Video play/end logic for Phase 1 */
   p1v2.onplay = () => {
     const pm = $('p1Music');
-    if (pm && !pm.paused) pm.pause();
+    if (pm && !pm.paused) {
+      console.log("Video started, pausing background music...");
+      pm.pause();
+    }
   };
   p1v2.onended = () => {
-    const pm = $('p1Music');
-    if (pm) pm.play().catch(()=>{});
+    // Only resume if we are still in Phase 1 (checking currentStep)
+    // and if it's NOT the last video of Phase 1
+    if (typeof currentStep !== 'undefined' && currentStep < 1) { 
+       const pm = $('p1Music');
+       if (pm) pm.play().catch(()=>{});
+    }
   };
 
+  const pm = $("p1Music"); if(pm) pm.play().catch(()=>{});
   /* Start P1 background music */
   const pm=$('p1Music');
   $('p1MusicSrc').src=P1_M4A;
