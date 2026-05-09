@@ -1137,20 +1137,16 @@ function startPlayer(clipList, screenId, onDoneCb, isP2flag){
   function playClip(idx){
     if(abort) return;
     const sl=idx%2, ps=1-sl;
-    const el   = sl===0 ? vaEl : vbEl;
-    const w    = sl===0 ? waEl : wbEl;
-    const pw   = sl===0 ? wbEl : waEl;
+    const el    = sl===0 ? vaEl : vbEl;
+    const w     = sl===0 ? waEl : wbEl;
+    const pw    = sl===0 ? wbEl : waEl;
+    const nextEl= sl===0 ? vbEl : vaEl; // the OTHER (hidden) video element — used to double-buffer next clip
+    const nextW = sl===0 ? wbEl : waEl;
     w.style.zIndex='3'; pw.style.zIndex='2';
     $(glowId).className='bglow '+GLOW_CLS[idx%GLOW_CLS.length];
     setDot(dotsEl, idx); setClipAura(auraEl, idx);
     ENTRY_CLS.forEach(c=>w.classList.remove(c)); w.classList.remove('eExit'); w.style.opacity='0';
-    const preNext = () => {
-  const ni = idx + 1;
-  if (ni >= clipList.length) return;
 
-  const nextUrl = clipList[ni];
-  preloadVideo(nextUrl); // aggressively preload next clip
-};
     const cut=()=>{
       if(abort)return;
       flash(cfEl);
@@ -1162,29 +1158,82 @@ function startPlayer(clipList, screenId, onDoneCb, isP2flag){
         setTimeout(()=>{ if(!abort)onDoneCb(); },EXIT_MS);
       }
     };
-    const startEl=()=>{if(abort)return;w.style.opacity='';applyAnim(w,ENTRY_CLS[idx%ENTRY_CLS.length]);el.play().catch(()=>{});preNext();};
+
+    /* startEl: make current clip visible + playing, then immediately begin buffering next clip
+       on the OTHER (hidden) video element so it's ready with zero wait when its turn comes. */
+    const startEl=()=>{
+      if(abort)return;
+      w.style.opacity='';
+      applyAnim(w,ENTRY_CLS[idx%ENTRY_CLS.length]);
+      el.play().catch(()=>{});
+
+      /* Double-buffer: silently load next clip on the hidden element NOW,
+         while current clip is playing. By the time next clip needs to play,
+         readyState will be 3/4 → instant start, no 2-second wait. */
+      const ni=idx+1;
+      if(ni<clipList.length){
+        const nextUrl=clipList[ni]||'';
+        if(nextUrl && nextEl.src!==nextUrl){
+          nextEl.muted=true;
+          nextEl.playsInline=true;
+          nextEl.preload='auto';
+          nextEl.src=nextUrl;
+          nextEl.load();
+        }
+      }
+    };
+
     const onC=()=>{el.removeEventListener('canplay',onC);startEl();};
     const onT=()=>{
       if(!el.duration||el.currentTime<el.duration-TRANS_BEF)return;
       el.removeEventListener('timeupdate',onT);el.removeEventListener('ended',onE);
       cut();
     };
-    const onErr=()=>{el.removeEventListener('error',onErr);if(!abort)cut();};
+    /* On error: do NOT skip — let the ended/timeupdate path handle it naturally.
+       Only skip if we have truly no duration (unplayable file). */
+    const onErr=()=>{
+      el.removeEventListener('error',onErr);
+      if(!abort && !el.duration) cut(); // unplayable — advance
+    };
     const onE=()=>{el.removeEventListener('ended',onE);el.removeEventListener('timeupdate',onT);cut();};
+
     /* Remove stale listeners, add fresh ones BEFORE any load so canplay is never missed */
-    el.removeEventListener('canplay',onC);el.removeEventListener('timeupdate',onT);el.removeEventListener('ended',onE);
-    el.addEventListener('canplay',onC);el.addEventListener('timeupdate',onT);el.addEventListener('ended',onE);el.addEventListener('error',onErr);
+    el.removeEventListener('canplay',onC);
+    el.removeEventListener('timeupdate',onT);
+    el.removeEventListener('ended',onE);
+    el.removeEventListener('error',onErr);
+    el.addEventListener('canplay',onC);
+    el.addEventListener('timeupdate',onT);
+    el.addEventListener('ended',onE);
+    el.addEventListener('error',onErr);
+
     const newSrc=clipList[idx]||'';
     if(el.src && el.src.startsWith('blob:') && el.src!==newSrc) try{URL.revokeObjectURL(el.src);}catch(e){}
-    /* Only call load() if src changed OR element has no active network load.
-       Skipping load() preserves the preNext preload and avoids resetting readyState to 0,
-       which causes play() to silently fail on iOS/Android for clips 2-5. */
-    if(el.src!==newSrc || el.networkState===HTMLMediaElement.NETWORK_EMPTY){
-      el.src=newSrc; el.load();
+
+    /* If the double-buffer already loaded this src on el (same slot, clips 2, 4, 6…),
+       skip load() to preserve the buffer. Otherwise set src and load. */
+    if(el.src!==newSrc){
+      el.src=newSrc;
+      el.preload='auto';
+      el.load();
+    } else if(el.networkState===HTMLMediaElement.NETWORK_EMPTY){
+      el.load();
     }
-    /* If preNext already fully buffered this clip, canplay won't fire again — play immediately */
-    if(el.readyState>=3){ el.removeEventListener('canplay',onC); startEl(); }
-    else { const fb=setTimeout(()=>{el.removeEventListener('canplay',onC);startEl();},2500); el.addEventListener('canplay',()=>clearTimeout(fb),{once:true}); }
+
+    /* readyState 3 (HAVE_FUTURE_DATA) or 4 (HAVE_ENOUGH_DATA) → canplay will NOT fire again,
+       start immediately. readyState 2 (HAVE_CURRENT_DATA) → also enough to begin playing.
+       Otherwise wait for canplay; fallback after 400 ms in case canplay is suppressed
+       (e.g. cross-origin / iOS quirks) — 400 ms is imperceptible vs the old 2500 ms. */
+    if(el.readyState>=2){
+      el.removeEventListener('canplay',onC);
+      startEl();
+    } else {
+      const fb=setTimeout(()=>{
+        el.removeEventListener('canplay',onC);
+        startEl(); // play whatever is buffered rather than waiting
+      },400);
+      el.addEventListener('canplay',()=>clearTimeout(fb),{once:true});
+    }
   }
   playClip(0);
   return ()=>{
