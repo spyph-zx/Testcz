@@ -1037,6 +1037,22 @@ async function preloadClipList(list, progressCb) {
     if (progressCb) progressCb(loaded, urls.length);
   }
 }
+
+function preloadAllAssets() {
+  // Phase 0 clips
+  preloadClipList(P0);
+
+  // Phase 1 videos
+  preloadVideo(P1_V1);
+  preloadVideo(P1_V2);
+
+  // Phase 2 clips
+  preloadClipList(P2);
+
+  // Final videos
+  preloadVideo(OUTRO_VID);
+  preloadVideo(LAST_VID);
+}
    
   /* ══════════════════════════════════════════════════════════
    METER
@@ -1058,16 +1074,10 @@ function startMeter(){
       $('gw').classList.add('show');
 
       setTimeout(() => {
-        /* Preload ONLY the second clip in background */
-        if (P0 && P0.length > 1) {
-          preloadVideo(P0[1]);
-        }
-
-        /* Start immediately with no loading text */
-        spawnP02Petals();
-        spawnP02Sparkles();
-        startPlayer(P0, 's-player', enterP1);
-      }, 2600);
+  spawnP02Petals();
+  spawnP02Sparkles();
+  startPlayer(P0, 's-player', enterP1);
+}, 2600);
     }
   }, 35);
 }
@@ -1702,6 +1712,7 @@ function burstAtPoint(x, y, containerId){
   }
 }
 
+preloadAllAssets();
 
 </script>
 </body>
