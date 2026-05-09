@@ -1081,6 +1081,40 @@ function spawnDecos(layer){
   }
 }
 
+/* ══════════════════════════════════════════════════════════
+   ADD THIS ABOVE startPlayer()
+══════════════════════════════════════════════════════════ */
+
+const VIDEO_PRELOAD_CACHE = new Map();
+
+function preloadVideo(url) {
+  if (!url) return Promise.resolve(null);
+
+  // Return existing preload promise if already cached
+  if (VIDEO_PRELOAD_CACHE.has(url)) {
+    return VIDEO_PRELOAD_CACHE.get(url);
+  }
+
+  const promise = new Promise((resolve) => {
+    const v = document.createElement('video');
+    v.preload = 'auto';
+    v.muted = true;
+    v.playsInline = true;
+    v.src = url;
+
+    const done = () => resolve(v);
+
+    v.addEventListener('canplaythrough', done, { once: true });
+    v.addEventListener('loadeddata', done, { once: true });
+    v.addEventListener('error', () => resolve(v), { once: true });
+
+    v.load();
+  });
+
+  VIDEO_PRELOAD_CACHE.set(url, promise);
+  return promise;
+}
+   
 function startPlayer(clipList, screenId, onDoneCb, isP2flag){
   const isP2 = screenId === 's-player2';
   const glowEl   = isP2 ? bGlow2   : bGlow;
@@ -1110,7 +1144,13 @@ function startPlayer(clipList, screenId, onDoneCb, isP2flag){
     $(glowId).className='bglow '+GLOW_CLS[idx%GLOW_CLS.length];
     setDot(dotsEl, idx); setClipAura(auraEl, idx);
     ENTRY_CLS.forEach(c=>w.classList.remove(c)); w.classList.remove('eExit'); w.style.opacity='0';
-    const preNext=()=>{const ni=idx+1;if(ni>=clipList.length)return;const nv=sl===0?vbEl:vaEl;if(nv!==el){nv.src=clipList[ni];nv.load();}};
+    const preNext = () => {
+  const ni = idx + 1;
+  if (ni >= clipList.length) return;
+
+  const nextUrl = clipList[ni];
+  preloadVideo(nextUrl); // aggressively preload next clip
+};
     const cut=()=>{
       if(abort)return;
       flash(cfEl);
