@@ -1169,12 +1169,12 @@ function startPlayer(clipList, screenId, onDoneCb, isP2flag){
 
       /* Double-buffer: silently load next clip on the hidden element NOW,
          while current clip is playing. By the time next clip needs to play,
-         readyState will be 3/4 → instant start, no 2-second wait. */
+         readyState will be 3/4 → instant start, no 2-second wait.
+         NOTE: do NOT mute — these are the real player elements and must play with audio. */
       const ni=idx+1;
       if(ni<clipList.length){
         const nextUrl=clipList[ni]||'';
         if(nextUrl && nextEl.src!==nextUrl){
-          nextEl.muted=true;
           nextEl.playsInline=true;
           nextEl.preload='auto';
           nextEl.src=nextUrl;
