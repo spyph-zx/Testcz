@@ -1027,59 +1027,22 @@ function buildUpload(){
 /* ══════════════════════════════════════════════════════════
    METER
 ══════════════════════════════════════════════════════════ */
-async function preloadClipList(list, progressCb) {
-  const urls = [...new Set(list.filter(Boolean))];
-  let loaded = 0;
-
-  for (const url of urls) {
-    await preloadVideo(url);
-    loaded++;
-    if (progressCb) progressCb(loaded, urls.length);
-  }
-}
-
-function preloadAllAssets() {
-  // Phase 0 clips
-  preloadClipList(P0);
-
-  // Phase 1 videos
-  preloadVideo(P1_V1);
-  preloadVideo(P1_V2);
-
-  // Phase 2 clips
-  preloadClipList(P2);
-
-  // Final videos
-  preloadVideo(OUTRO_VID);
-  preloadVideo(LAST_VID);
-}
-   
-  /* ══════════════════════════════════════════════════════════
-   METER
-══════════════════════════════════════════════════════════ */
 function startMeter(){
   showZS('s-meter');
-  $('pct').textContent = '0%';
-  $('prog-circ').style.strokeDashoffset = CIRC;
+  $('pct').textContent='0%';
+  $('prog-circ').style.strokeDashoffset=CIRC;
   $('gw').classList.remove('show');
-
-  let count = 0;
-  const t = setInterval(() => {
+  let count=0;
+  const t=setInterval(()=>{
     count++;
-    $('pct').textContent = count + '%';
-    $('prog-circ').style.strokeDashoffset = CIRC - (count / 143) * CIRC;
-
-    if (count >= 143) {
+    $('pct').textContent=count+'%';
+    $('prog-circ').style.strokeDashoffset=CIRC-(count/143)*CIRC;
+    if(count>=143){
       clearInterval(t);
       $('gw').classList.add('show');
-
-      setTimeout(() => {
-  spawnP02Petals();
-  spawnP02Sparkles();
-  startPlayer(P0, 's-player', enterP1);
-}, 2600);
+      setTimeout(()=>{ spawnP02Petals(); spawnP02Sparkles(); startPlayer(P0,'s-player',enterP1); },2600);
     }
-  }, 35);
+  },35);
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -1241,39 +1204,20 @@ let successTimer = null;
    PHASE 1 — ENTRY
 ══════════════════════════════════════════════════════════ */
 function enterP1(){
-  /* Preload upcoming assets in the background */
-  preloadVideo(P1_V1);
-  preloadVideo(P1_V2);
-  preloadClipList(P2);
-  preloadVideo(OUTRO_VID);
-  preloadVideo(LAST_VID);
-
-  p1Step = 0;
-  p1FirstNo = true;
-  p1NoTele = false;
-  p1NoLX = p1NoLY = -1;
-
+  p1Step=0; p1FirstNo=true; p1NoTele=false; p1NoLX=p1NoLY=-1;
   resetNoBtn();
-  spawnP1Petals();
-  spawnP1Sparkles();
-
+  spawnP1Petals(); spawnP1Sparkles();
   loadScene(0);
   showP1('s-p1-card');
-
-  /* Buffer second Phase-1 video silently */
-  p1v2.src = P1_V2;
-  p1v2.muted = true;
-  p1v2.currentTime = 0;
-  p1v2.preload = 'auto';
-  p1v2.load();
-
-  /* Start Phase-1 background music */
-  const pm = $('p1Music');
-  pm.loop = true;
-  $('p1MusicSrc').src = P1_M4A;
+  /* Buffer vid2 silently — frame CSS (opacity:0) already hides it */
+  p1v2.src=P1_V2; p1v2.muted=true; p1v2.currentTime=0; p1v2.load();
+  /* Start P1 background music — loop so it never stops mid-confession */
+  const pm=$('p1Music');
+  pm.loop=true;
+  $('p1MusicSrc').src=P1_M4A;
   pm.load();
-  pm.volume = 0.75;
-  pm.play().catch(() => {});
+  pm.volume=0.75;
+  pm.play().catch(()=>{});
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -1712,7 +1656,6 @@ function burstAtPoint(x, y, containerId){
   }
 }
 
-preloadAllAssets();
 
 </script>
 </body>
