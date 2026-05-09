@@ -472,18 +472,19 @@ body.p1-active #p02-petals,body.p1-active #p02-sparkles{display:none;}
   flex-direction:column;align-items:center;justify-content:center;
   gap:clamp(16px,4vh,28px);
 }
-/* White→Black curtain */
+/* Cinematic dark-rose bloom curtain — no white flash */
 .rg-curtain{
   position:fixed;inset:0;z-index:9000;pointer-events:none;
-  background:#fff;opacity:0;transition:none;
+  background:radial-gradient(ellipse 90% 90% at 50% 50%,rgba(194,0,95,.28) 0%,#040003 100%);
+  opacity:0;transition:none;
 }
 .rg-curtain--run{
-  animation:rgCurtainAnim 1.0s ease-in-out forwards;
+  animation:rgCurtainAnim 0.85s cubic-bezier(.4,0,.2,1) forwards;
 }
 @keyframes rgCurtainAnim{
   0%  {opacity:0;}
-  30% {opacity:1;}          /* peak white flash */
-  100%{opacity:0;background:#000;}  /* fade to black */
+  42% {opacity:1;}
+  100%{opacity:0;}
 }
 
 /* Petal + heart layers */
@@ -773,7 +774,7 @@ body.p1-active #p02-petals,body.p1-active #p02-sparkles{display:none;}
 
 <section id="s-outro" class="zs s-outro" style="padding:0;overflow:hidden;background:#000;">
   <!-- Curtain overlay -->
-  <div id="outroCurtain" style="position:fixed;inset:0;z-index:9000;pointer-events:none;background:#fff;opacity:0;"></div>
+  <div id="outroCurtain" style="position:fixed;inset:0;z-index:9000;pointer-events:none;background:radial-gradient(ellipse 90% 90% at 50% 50%,rgba(194,0,95,.28) 0%,#040003 100%);opacity:0;"></div>
   <!-- Outro ambient layers -->
   <div id="outroHearts" style="position:absolute;inset:0;z-index:6;pointer-events:none;overflow:hidden;"></div>
   <div id="outroPetals" class="outro-petals-layer"></div>
@@ -1384,41 +1385,55 @@ function leaveV1(){
    REGARDS PAGE
 ══════════════════════════════════════════════════════════ */
 function showRegardsPage(){
-  /* White → black curtain animation */
+  /* ── Music: fire immediately — already preloaded in startPhase2, zero load delay ── */
+  const pm2=$('p2Music');
+  pm2.currentTime=0;
+  pm2.volume=0;
+  pm2.play().catch(()=>{});
+  /* Smooth 500 ms volume ramp so music feels like it rises with the transition */
+  let _v=0;
+  const _fade=setInterval(()=>{
+    _v=Math.min(_v+0.085,0.85);
+    pm2.volume=_v;
+    if(_v>=0.85)clearInterval(_fade);
+  },50);
+
+  /* ── Cinematic dark-rose bloom curtain ── */
   const curtain=$('outroCurtain');
   if(curtain) curtain.classList.add('rg-curtain--run');
 
+  /* Reveal outro page right at the curtain's dark peak (≈42% × 850ms ≈ 360ms).
+     The curtain then fades back out (100%→0) over the next ~490ms while the
+     outro page cross-fades in underneath — no jarring cut. */
   setTimeout(()=>{
     showZS('s-outro');
+
+    /* Cross-fade outro in over the curtain fade-out */
+    const outroEl=$('s-outro');
+    outroEl.style.opacity='0';
+    outroEl.style.transition='opacity 0.48s ease';
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{ outroEl.style.opacity='1'; }));
+
     spawnOutroPetals();
     spawnOutroHearts(8);
 
     /* Set up looping video — preload + loop seamlessly */
     const rv=$('outroVid');
     rv.src = OUTRO_VID;
-    rv.loop = false; // we handle loop manually for zero-gap
+    rv.loop = false; // manual zero-gap loop
     rv.muted = true;
     rv.load();
     rv.addEventListener('canplay', function onRvReady(){
       rv.removeEventListener('canplay', onRvReady);
       rv.play().catch(()=>{});
     });
-    /* Zero-gap loop: restart at duration-0.5s before end */
+    /* Zero-gap loop: restart 0.5s before end */
     rv.addEventListener('timeupdate', function(){
       if(rv.duration && rv.currentTime >= rv.duration - 0.5){
         rv.currentTime = 0;
         rv.play().catch(()=>{});
       }
     });
-
-    /* Last page m4a — start instantly as phase-2 5th clip ends, loop forever */
-    const pm2=$('p2Music');
-    pm2.pause(); pm2.currentTime=0;
-    $('p2MusicSrc').src = P2_M4A;
-    pm2.loop=true;
-    pm2.load();
-    pm2.volume=0.85;
-    pm2.play().catch(()=>{});
 
     /* Wire ZeroX button to open the configured link */
     const zxBtn=$('zerox-outro-btn');
@@ -1430,7 +1445,7 @@ function showRegardsPage(){
     /* Touch → burst effect */
     $('s-outro').addEventListener('pointerdown', rgTouchBurst, {passive:true});
 
-  }, 900); // after curtain peaks white then goes black
+  }, 360); // curtain dark peak — show outro just as bloom reaches full depth
 }
 
 let outroBorderTimer=null;
@@ -1514,7 +1529,14 @@ function startPhase2(){
   const pm=$('p1Music'); pm.pause(); pm.currentTime=0;
   document.body.classList.remove('p1-active');
   spawnDecos(decoLayer2);
-  // Start outro music 0.5s before last clip ends — handled inside startPlayer callback
+  /* Pre-buffer outro music NOW so it is fully ready the instant the last P2 clip ends —
+     no load delay during the transition. Volume stays 0 until showRegardsPage fades it in. */
+  const pm2=$('p2Music');
+  pm2.pause(); pm2.currentTime=0;
+  $('p2MusicSrc').src=P2_M4A;
+  pm2.loop=true;
+  pm2.volume=0;
+  pm2.load();
   startPlayer(P2,'s-player2', showRegardsPage);
 }
 p1v2.addEventListener('ended', startPhase2);
