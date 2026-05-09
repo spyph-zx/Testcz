@@ -1051,11 +1051,11 @@ async function preloadClipList(list, progressCb) {
     if(count>=143){
       clearInterval(t);
       $('gw').classList.add('show');
-      setTimeout(async () => {
-  $('pct').textContent = 'Loading videos...';
+      setTimeout(() => {
+  /* Start background preloading (non-blocking) */
+  preloadClipList(P0);
 
-  await preloadClipList(P0);
-
+  /* Start playback immediately */
   spawnP02Petals();
   spawnP02Sparkles();
   startPlayer(P0, 's-player', enterP1);
