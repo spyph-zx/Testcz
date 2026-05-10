@@ -567,13 +567,12 @@ body.p1-active #p02-petals,body.p1-active #p02-sparkles{display:none;}
   transform:translateZ(0);will-change:transform;
 }
 
-/* Full-screen cycling inset glow border — same depth as bglow on phase-2 */
+/* Full-screen cycling inset glow border — same depth as bglow on phase-2.
+   NO transition/animation here — JS drives colour; transitions on box-shadow
+   on a fullscreen element force constant GPU compositing and cause lag. */
 .outro-border-glow {
   position:absolute;inset:0;z-index:5;pointer-events:none;
-  transition:box-shadow .55s ease;
-  animation:outroBorderPulse 1.6s ease-in-out infinite;
 }
-@keyframes outroBorderPulse{0%,100%{opacity:1;}50%{opacity:.45;}}
 
 /* Petal/heart layer over everything */
 .outro-petals-layer {
@@ -815,7 +814,7 @@ let P1_SUCC_GIF2 = 'gif7.gif';             // second success gif — upload in c
 let P1_SUCC_GIF2_FB = 'https://media.tenor.com/JqbHaO7UMiMAAAAC/love-heart.gif';
 let P1_M4A = 'song.m4a';                   // ← Phase-1 background m4a
 let OUTRO_M4A = 'outro.m4a';               // ← Final page looping m4a
-let OUTRO_VID = 'outro.mp4';               // ← Final page looping mp4 slot
+let OUTRO_VID = 'https://res.cloudinary.com/dixl7wxca/video/upload/lp_u3rpcv.mp4';               // ← Final page looping mp4 slot
 let LAST_VID  = 'last.mp4';               // ← Regards page looping mp4
 let P2_M4A    = 'outro.m4a';              // ← Regards page looping m4a
 let P1_SUCC_FB  = 'https://media.tenor.com/JqbHaO7UMiMAAAAC/love-heart.gif';
@@ -1182,7 +1181,7 @@ function startPlayer(clipList, screenId, onDoneCb, isP2flag){
     if(idx===clipList.length-1){
       let _musicFired=false;
       const onMusicPre=()=>{
-        if(_musicFired||!el.duration||el.currentTime<el.duration-TRANS_BEF-0.05)return;
+        if(_musicFired||!el.duration||el.currentTime<el.duration-2.5)return;
         _musicFired=true;
         el.removeEventListener('timeupdate',onMusicPre);
         if(!isP2){
@@ -1444,25 +1443,19 @@ function showRegardsPage(){
     requestAnimationFrame(()=>requestAnimationFrame(()=>{ outroEl.style.opacity='1'; }));
 
     spawnOutroPetals();
-    spawnOutroHearts(8);
+    spawnOutroHearts(5);
 
-    /* Set up looping video — preload + loop seamlessly */
+    /* Video already preloaded in startPhase2 — just play it */
     const rv=$('outroVid');
-    rv.src = OUTRO_VID;
-    rv.loop = false; // manual zero-gap loop
-    rv.muted = true;
-    rv.load();
-    rv.addEventListener('canplay', function onRvReady(){
-      rv.removeEventListener('canplay', onRvReady);
+    rv.loop = true;
+    if(rv.readyState >= 3){
       rv.play().catch(()=>{});
-    });
-    /* Zero-gap loop: restart 0.5s before end */
-    rv.addEventListener('timeupdate', function(){
-      if(rv.duration && rv.currentTime >= rv.duration - 0.5){
-        rv.currentTime = 0;
+    } else {
+      rv.addEventListener('canplay', function onRvReady(){
+        rv.removeEventListener('canplay', onRvReady);
         rv.play().catch(()=>{});
-      }
-    });
+      },{once:true});
+    }
 
     /* Wire ZeroX button to open the configured link */
     const zxBtn=$('zerox-outro-btn');
@@ -1491,12 +1484,16 @@ let outroBorderIdx=0;
 function startOutroBorder(){
   const bg=$('outroBorderGlow');
   if(!bg)return;
+  /* Use requestAnimationFrame for the first paint then setTimeout at 1400ms —
+     inset box-shadow changes on fullscreen elements are expensive; halving the
+     frequency eliminates the jank without noticeable visual difference. */
+  bg.style.boxShadow=OUTRO_BORDER_COLS[0];
   function step(){
-    bg.style.boxShadow=OUTRO_BORDER_COLS[outroBorderIdx%OUTRO_BORDER_COLS.length];
     outroBorderIdx++;
-    outroBorderTimer=setTimeout(step,650);
+    bg.style.boxShadow=OUTRO_BORDER_COLS[outroBorderIdx%OUTRO_BORDER_COLS.length];
+    outroBorderTimer=setTimeout(step,1400);
   }
-  step();
+  outroBorderTimer=setTimeout(step,1400);
 }
 
 function rgTouchBurst(e){
@@ -1556,14 +1553,21 @@ function startPhase2(){
   const pm=$('p1Music'); pm.pause(); pm.currentTime=0;
   document.body.classList.remove('p1-active');
   spawnDecos(decoLayer2);
-  /* Pre-buffer outro music NOW so it is fully ready the instant the last P2 clip ends —
-     no load delay during the transition. Volume stays 0 until showRegardsPage fades it in. */
+  /* Pre-buffer outro music NOW */
   const pm2=$('p2Music');
   pm2.pause(); pm2.currentTime=0;
   $('p2MusicSrc').src=P2_M4A;
   pm2.loop=true;
   pm2.volume=0;
   pm2.load();
+  /* Pre-buffer outro VIDEO now — by the time the last P2 clip ends and
+     showRegardsPage fires, readyState will be 3-4 → instant play, zero lag. */
+  const rv=$('outroVid');
+  rv.loop=true;
+  rv.muted=true;
+  rv.preload='auto';
+  rv.src=OUTRO_VID;
+  rv.load();
   startPlayer(P2,'s-player2', showRegardsPage);
 }
 p1v2.addEventListener('ended', startPhase2);
