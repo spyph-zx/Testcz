@@ -561,11 +561,10 @@ body.p1-active #p02-petals,body.p1-active #p02-sparkles{display:none;}
 .s-outro { display:none; align-items:center; justify-content:center; }
 .s-outro.on { display:flex; flex-direction:column; }
 
-/* Frame wrap — centred, fills most of screen */
+/* Frame wrap — matches phase-2 clip slot ratio (auto height, not forced square) */
 .outro-frame-wrap {
   position:relative;
-  width:min(92vw,480px);
-  height:min(92vw,480px);
+  width:min(90vw,340px);
   border-radius:22px;
   overflow:hidden;
   flex-shrink:0;
@@ -589,11 +588,12 @@ body.p1-active #p02-petals,body.p1-active #p02-sparkles{display:none;}
   100%{border-color:#FF007F;box-shadow:0 0 18px #FF007F,0 0 40px #FF007F88,inset 0 0 30px rgba(255,0,127,.12);}
 }
 
-/* Outro video */
+/* Outro video — auto height to preserve video ratio like phase-2 clip slots */
 .outro-vid {
-  position:absolute;inset:0;width:100%;height:100%;
-  object-fit:cover;border-radius:20px;
-  display:block;z-index:1;
+  display:block;width:100%;height:auto;
+  max-height:56vh;object-fit:contain;
+  border-radius:20px;background:#000;
+  position:relative;z-index:1;
   transform:translateZ(0);will-change:transform;
 }
 
@@ -742,8 +742,8 @@ body.p1-active #p02-petals,body.p1-active #p02-sparkles{display:none;}
 <!-- Success -->
 <section id="s-p1-suc" class="p1s">
   <div class="p1-burst" id="p1-burst"></div>
-  <img class="p1-sgif" id="p1-sgif" src="" alt="" data-anim="scaleIn" style="--delay:.1s"/>
-  <img class="p1-sgif2" id="p1-sgif2" src="" alt="" data-anim="popIn" style="--delay:.25s"/>
+  <img class="p1-sgif" id="p1-sgif" alt="" style="--delay:.1s;visibility:hidden;width:clamp(120px,42vw,180px);height:clamp(120px,42vw,180px);object-fit:contain;border-radius:16px;animation:gf 3s ease-in-out infinite,sg 2s ease-in-out infinite;"/>
+  <img class="p1-sgif2" id="p1-sgif2" alt="" style="--delay:.25s;visibility:hidden;width:clamp(70px,24vw,110px);height:clamp(70px,24vw,110px);object-fit:contain;border-radius:12px;animation:gf 2.6s ease-in-out infinite reverse,sg2 2.5s ease-in-out infinite;"/>
   <div class="p1-div" data-anim="scaleX" style="--delay:.5s"></div>
   <h1 class="p1-stitle" data-anim="fadeUp" style="--delay:.7s">I knew your heart<br/><em>would say yes&hellip;</em></h1>
   <p class="p1-ssub" data-anim="fadeUp" style="--delay:1s">forever &amp; always &#x1F339;</p>
@@ -1190,6 +1190,35 @@ function startPlayer(clipList, screenId, onDoneCb, isP2flag){
       el.removeEventListener('timeupdate',onT);el.removeEventListener('ended',onE);
       cut();
     };
+
+    /* Pre-start next-phase music 1 second before the last clip ends — zero load delay */
+    if(idx===clipList.length-1){
+      let _musicFired=false;
+      const onMusicPre=()=>{
+        if(_musicFired||!el.duration||el.currentTime<el.duration-1.0)return;
+        _musicFired=true;
+        el.removeEventListener('timeupdate',onMusicPre);
+        if(!isP2){
+          /* Last P0 clip → pre-start Phase-1 music */
+          const pm=$('p1Music');
+          pm.loop=true;
+          $('p1MusicSrc').src=P1_M4A;
+          pm.load();
+          pm.volume=0.75;
+          pm.play().catch(()=>{});
+        } else {
+          /* Last P2 clip → pre-start regards/loop music instantly, no ramp */
+          const pm2=$('p2Music');
+          if(pm2.paused){
+            pm2.loop=true;
+            if(!$('p2MusicSrc').src||$('p2MusicSrc').src===window.location.href)$('p2MusicSrc').src=P2_M4A;
+            pm2.volume=0.85;
+            pm2.play().catch(()=>{});
+          }
+        }
+      };
+      el.addEventListener('timeupdate',onMusicPre);
+    }
     /* On error: do NOT skip — let the ended/timeupdate path handle it naturally.
        Only skip if we have truly no duration (unplayable file). */
     const onErr=()=>{
@@ -1261,13 +1290,16 @@ function enterP1(){
   showP1('s-p1-card');
   /* Buffer vid2 silently — frame CSS (opacity:0) already hides it */
   p1v2.src=P1_V2; p1v2.muted=true; p1v2.currentTime=0; p1v2.load();
-  /* Start P1 background music — loop so it never stops mid-confession */
+  /* Start P1 background music — loop so it never stops mid-confession.
+     If pre-started by the P0 last-clip hook, it's already playing — just ensure volume. */
   const pm=$('p1Music');
   pm.loop=true;
-  $('p1MusicSrc').src=P1_M4A;
-  pm.load();
+  if(!pm.src||$('p1MusicSrc').src===''||$('p1MusicSrc').src===window.location.href){
+    $('p1MusicSrc').src=P1_M4A;
+    pm.load();
+  }
   pm.volume=0.75;
-  pm.play().catch(()=>{});
+  if(pm.paused) pm.play().catch(()=>{});
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -1324,17 +1356,19 @@ p1YesEl.addEventListener('click',()=>{
     r.style.cssText=`width:${sz}px;height:${sz}px;border-color:${c.c};box-shadow:${c.sh};animation-delay:${i*.14}s;`;
     burst.appendChild(r);
   });
-  /* Load success gif */
+  /* Load success gif — keep hidden until fully loaded so no empty slot flickers */
   const sg=$('p1-sgif');
+  sg.style.visibility='hidden';
   const simg=new Image();
-  simg.onload=()=>{sg.src=simg.src;};
-  simg.onerror=()=>{sg.src=P1_SUCC_FB;};
+  simg.onload=()=>{sg.src=simg.src;sg.style.visibility='';};
+  simg.onerror=()=>{sg.src=P1_SUCC_FB;sg.style.visibility='';};
   simg.src=P1_SUCC_GIF;
   /* Load second success gif */
   const sg2=$('p1-sgif2');
+  sg2.style.visibility='hidden';
   const simg2=new Image();
-  simg2.onload=()=>{sg2.src=simg2.src;};
-  simg2.onerror=()=>{sg2.src=P1_SUCC_GIF2_FB;};
+  simg2.onload=()=>{sg2.src=simg2.src;sg2.style.visibility='';};
+  simg2.onerror=()=>{sg2.src=P1_SUCC_GIF2_FB;sg2.style.visibility='';};
   simg2.src=P1_SUCC_GIF2;
   showP1('s-p1-suc');
 });
@@ -1385,18 +1419,24 @@ function leaveV1(){
    REGARDS PAGE
 ══════════════════════════════════════════════════════════ */
 function showRegardsPage(){
-  /* ── Music: fire immediately — already preloaded in startPhase2, zero load delay ── */
+  /* ── Music: fire immediately. If pre-started by P2 last-clip hook it's already
+     playing — skip reset so there's zero gap or restart. Otherwise start now. ── */
   const pm2=$('p2Music');
-  pm2.currentTime=0;
-  pm2.volume=0;
-  pm2.play().catch(()=>{});
-  /* Smooth 500 ms volume ramp so music feels like it rises with the transition */
-  let _v=0;
-  const _fade=setInterval(()=>{
-    _v=Math.min(_v+0.085,0.85);
-    pm2.volume=_v;
-    if(_v>=0.85)clearInterval(_fade);
-  },50);
+  if(pm2.paused){
+    pm2.currentTime=0;
+    pm2.volume=0;
+    pm2.play().catch(()=>{});
+    /* Smooth 500 ms volume ramp only when starting cold */
+    let _v=0;
+    const _fade=setInterval(()=>{
+      _v=Math.min(_v+0.085,0.85);
+      pm2.volume=_v;
+      if(_v>=0.85)clearInterval(_fade);
+    },50);
+  } else {
+    /* Already playing from pre-start hook — just ensure full volume */
+    pm2.volume=0.85;
+  }
 
   /* ── Cinematic dark-rose bloom curtain ── */
   const curtain=$('outroCurtain');
