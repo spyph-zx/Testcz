@@ -561,41 +561,19 @@ body.p1-active #p02-petals,body.p1-active #p02-sparkles{display:none;}
 .s-outro { display:none; align-items:center; justify-content:center; }
 .s-outro.on { display:flex; flex-direction:column; }
 
-/* Frame wrap — matches phase-2 clip slot ratio (auto height, not forced square) */
-.outro-frame-wrap {
-  position:relative;
-  width:min(90vw,340px);
-  border-radius:22px;
-  overflow:hidden;
-  flex-shrink:0;
-  z-index:2;
-}
-
-/* Multi-colour cycling border */
-.outro-border-glow {
-  position:absolute;inset:0;z-index:4;pointer-events:none;
-  border-radius:22px;
-  border:3px solid;
-  animation:outroBorder 4s linear infinite;
-}
-@keyframes outroBorder{
-  0%  {border-color:#FF007F;box-shadow:0 0 18px #FF007F,0 0 40px #FF007F88,inset 0 0 30px rgba(255,0,127,.12);}
-  16% {border-color:#FF6600;box-shadow:0 0 18px #FF6600,0 0 40px #FF660088,inset 0 0 30px rgba(255,102,0,.12);}
-  33% {border-color:#FFD700;box-shadow:0 0 18px #FFD700,0 0 40px #FFD70088,inset 0 0 30px rgba(255,215,0,.12);}
-  50% {border-color:#00F2FF;box-shadow:0 0 18px #00F2FF,0 0 40px #00F2FF88,inset 0 0 30px rgba(0,242,255,.12);}
-  66% {border-color:#7000FF;box-shadow:0 0 18px #7000FF,0 0 40px #7000FF88,inset 0 0 30px rgba(112,0,255,.12);}
-  83% {border-color:#FF4DA6;box-shadow:0 0 18px #FF4DA6,0 0 40px #FF4DA688,inset 0 0 30px rgba(255,77,166,.12);}
-  100%{border-color:#FF007F;box-shadow:0 0 18px #FF007F,0 0 40px #FF007F88,inset 0 0 30px rgba(255,0,127,.12);}
-}
-
-/* Outro video — auto height to preserve video ratio like phase-2 clip slots */
+/* Outro video — fullscreen exactly like phase-2 clip slots (.cv) */
 .outro-vid {
-  display:block;width:100%;height:auto;
-  max-height:56vh;object-fit:contain;
-  border-radius:20px;background:#000;
-  position:relative;z-index:1;
+  width:100%;height:100%;object-fit:contain;display:block;background:#000;
   transform:translateZ(0);will-change:transform;
 }
+
+/* Full-screen cycling inset glow border — same depth as bglow on phase-2 */
+.outro-border-glow {
+  position:absolute;inset:0;z-index:5;pointer-events:none;
+  transition:box-shadow .55s ease;
+  animation:outroBorderPulse 1.6s ease-in-out infinite;
+}
+@keyframes outroBorderPulse{0%,100%{opacity:1;}50%{opacity:.45;}}
 
 /* Petal/heart layer over everything */
 .outro-petals-layer {
@@ -775,14 +753,13 @@ body.p1-active #p02-petals,body.p1-active #p02-sparkles{display:none;}
 <section id="s-outro" class="zs s-outro" style="padding:0;overflow:hidden;background:#000;">
   <!-- Curtain overlay -->
   <div id="outroCurtain" style="position:fixed;inset:0;z-index:9000;pointer-events:none;background:radial-gradient(ellipse 90% 90% at 50% 50%,rgba(194,0,95,.28) 0%,#040003 100%);opacity:0;"></div>
-  <!-- Outro ambient layers -->
+  <!-- Ambient layers -->
   <div id="outroHearts" style="position:absolute;inset:0;z-index:6;pointer-events:none;overflow:hidden;"></div>
   <div id="outroPetals" class="outro-petals-layer"></div>
-  <!-- Multi-colour glowing border frame -->
-  <div class="outro-frame-wrap">
-    <div class="outro-border-glow" id="outroBorderGlow"></div>
-    <video id="outroVid" class="outro-vid" playsinline preload="auto" loop></video>
-  </div>
+  <!-- Fullscreen video — identical structure to phase-2 clip slots -->
+  <div class="cw" style="z-index:1;"><video id="outroVid" class="cv outro-vid" playsinline preload="auto"></video></div>
+  <!-- Cycling inset glow border — fullscreen, same depth as bglow -->
+  <div id="outroBorderGlow" class="outro-border-glow"></div>
   <!-- ZeroX button fixed at bottom centre -->
   <div class="outro-zerox-wrap">
     <button class="zerox-btn" id="zerox-outro-btn">
@@ -838,7 +815,7 @@ let P1_SUCC_GIF2 = 'gif7.gif';             // second success gif — upload in c
 let P1_SUCC_GIF2_FB = 'https://media.tenor.com/JqbHaO7UMiMAAAAC/love-heart.gif';
 let P1_M4A = 'song.m4a';                   // ← Phase-1 background m4a
 let OUTRO_M4A = 'outro.m4a';               // ← Final page looping m4a
-let OUTRO_VID = 'https://res.cloudinary.com/dixl7wxca/video/upload/lp_u3rpcv.mp4';               // ← Final page looping mp4 slot
+let OUTRO_VID = 'outro.mp4';               // ← Final page looping mp4 slot
 let LAST_VID  = 'last.mp4';               // ← Regards page looping mp4
 let P2_M4A    = 'outro.m4a';              // ← Regards page looping m4a
 let P1_SUCC_FB  = 'https://media.tenor.com/JqbHaO7UMiMAAAAC/love-heart.gif';
@@ -1134,6 +1111,15 @@ function startPlayer(clipList, screenId, onDoneCb, isP2flag){
   setClipAura(auraEl, 0);
   showZS(screenId);
 
+  /* Eagerly preload the next-phase audio the moment the player starts so
+     there is ZERO load latency when the last clip fires. */
+  if(!isP2){
+    const pmPre=$('p1Music');
+    if($('p1MusicSrc').src===''||$('p1MusicSrc').src===window.location.href){
+      $('p1MusicSrc').src=P1_M4A; pmPre.load();
+    }
+  }
+
   let abort = false;
   function playClip(idx){
     if(abort) return;
@@ -1191,30 +1177,24 @@ function startPlayer(clipList, screenId, onDoneCb, isP2flag){
       cut();
     };
 
-    /* Pre-start next-phase music 1 second before the last clip ends — zero load delay */
+    /* Fire next-phase music the instant the last clip begins its exit transition.
+       Audio is already fully buffered from the eager preload above — pure .play(), zero load wait. */
     if(idx===clipList.length-1){
       let _musicFired=false;
       const onMusicPre=()=>{
-        if(_musicFired||!el.duration||el.currentTime<el.duration-1.0)return;
+        if(_musicFired||!el.duration||el.currentTime<el.duration-TRANS_BEF-0.05)return;
         _musicFired=true;
         el.removeEventListener('timeupdate',onMusicPre);
         if(!isP2){
-          /* Last P0 clip → pre-start Phase-1 music */
+          /* Last P0 clip → play Phase-1 music (already buffered) */
           const pm=$('p1Music');
           pm.loop=true;
-          $('p1MusicSrc').src=P1_M4A;
-          pm.load();
           pm.volume=0.75;
           pm.play().catch(()=>{});
         } else {
-          /* Last P2 clip → pre-start regards/loop music instantly, no ramp */
+          /* Last P2 clip → play regards music (already buffered in startPhase2) */
           const pm2=$('p2Music');
-          if(pm2.paused){
-            pm2.loop=true;
-            if(!$('p2MusicSrc').src||$('p2MusicSrc').src===window.location.href)$('p2MusicSrc').src=P2_M4A;
-            pm2.volume=0.85;
-            pm2.play().catch(()=>{});
-          }
+          if(pm2.paused){ pm2.loop=true; pm2.volume=0.85; pm2.play().catch(()=>{}); }
         }
       };
       el.addEventListener('timeupdate',onMusicPre);
@@ -1283,23 +1263,32 @@ let successTimer = null;
    PHASE 1 — ENTRY
 ══════════════════════════════════════════════════════════ */
 function enterP1(){
-  p1Step=0; p1FirstNo=true; p1NoTele=false; p1NoLX=p1NoLY=-1;
-  resetNoBtn();
-  spawnP1Petals(); spawnP1Sparkles();
-  loadScene(0);
-  showP1('s-p1-card');
-  /* Buffer vid2 silently — frame CSS (opacity:0) already hides it */
-  p1v2.src=P1_V2; p1v2.muted=true; p1v2.currentTime=0; p1v2.load();
-  /* Start P1 background music — loop so it never stops mid-confession.
-     If pre-started by the P0 last-clip hook, it's already playing — just ensure volume. */
-  const pm=$('p1Music');
-  pm.loop=true;
-  if(!pm.src||$('p1MusicSrc').src===''||$('p1MusicSrc').src===window.location.href){
-    $('p1MusicSrc').src=P1_M4A;
-    pm.load();
-  }
-  pm.volume=0.75;
-  if(pm.paused) pm.play().catch(()=>{});
+  /* Smooth crossfade: fade phase-0 player out, then switch screens */
+  const playerEl=$('s-player');
+  playerEl.style.transition='opacity 0.38s ease';
+  playerEl.style.opacity='0';
+
+  setTimeout(()=>{
+    playerEl.style.transition='';
+    playerEl.style.opacity='';
+
+    p1Step=0; p1FirstNo=true; p1NoTele=false; p1NoLX=p1NoLY=-1;
+    resetNoBtn();
+    spawnP1Petals(); spawnP1Sparkles();
+    loadScene(0);
+    showP1('s-p1-card');
+    /* Buffer vid2 silently */
+    p1v2.src=P1_V2; p1v2.muted=true; p1v2.currentTime=0; p1v2.load();
+    /* Music is already buffered + likely already playing from the last-clip hook.
+       Just ensure it's running at the right volume. */
+    const pm=$('p1Music');
+    pm.loop=true;
+    if($('p1MusicSrc').src===''||$('p1MusicSrc').src===window.location.href){
+      $('p1MusicSrc').src=P1_M4A; pm.load();
+    }
+    pm.volume=0.75;
+    if(pm.paused) pm.play().catch(()=>{});
+  }, 380);
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -1489,28 +1478,26 @@ function showRegardsPage(){
 }
 
 let outroBorderTimer=null;
+/* Fullscreen inset glow — same depth/style as bglow on phase-0/2 players, colour-cycles */
 const OUTRO_BORDER_COLS=[
-  '0 0 0 2px rgba(255,107,157,.5),0 0 18px #FF6B9D,0 0 45px #E8436Acc,0 0 80px #C2005Faa',
-  '0 0 0 2px rgba(140,0,255,.5),0 0 18px #7000ff,0 0 45px #9B30FFcc,0 0 80px #5000ccaa',
-  '0 0 0 2px rgba(0,200,255,.5),0 0 18px #00c8ff,0 0 45px #00f2ffcc,0 0 80px #0088bbaa',
-  '0 0 0 2px rgba(255,200,0,.5),0 0 18px #ffc800,0 0 45px #ffd700cc,0 0 80px #cc9900aa',
-  '0 0 0 2px rgba(0,255,120,.5),0 0 18px #00ff78,0 0 45px #00e064cc,0 0 80px #009944aa',
+  'inset 0 0 0 3px #ff007f,inset 0 0 70px rgba(255,0,127,.42),0 0 90px rgba(255,0,127,.28)',
+  'inset 0 0 0 3px #7000ff,inset 0 0 70px rgba(112,0,255,.42),0 0 90px rgba(112,0,255,.28)',
+  'inset 0 0 0 3px #00f2ff,inset 0 0 70px rgba(0,242,255,.38),0 0 90px rgba(0,242,255,.22)',
+  'inset 0 0 0 3px #ffd700,inset 0 0 70px rgba(255,215,0,.38),0 0 90px rgba(255,215,0,.22)',
+  'inset 0 0 0 3px #00ff78,inset 0 0 70px rgba(0,255,120,.38),0 0 90px rgba(0,255,120,.22)',
+  'inset 0 0 0 3px #ff4da6,inset 0 0 70px rgba(255,77,166,.42),0 0 90px rgba(255,77,166,.28)',
 ];
 let outroBorderIdx=0;
 function startOutroBorder(){
   const bg=$('outroBorderGlow');
   if(!bg)return;
   function step(){
-    /* Also animate the border colour via CSS var for smooth transition */
-    const col=OUTRO_BORDER_COLS[outroBorderIdx%OUTRO_BORDER_COLS.length];
-    bg.style.boxShadow=col;
-    bg.style.borderColor=OUTRO_BORDER_COLOURS[outroBorderIdx%OUTRO_BORDER_COLOURS.length];
+    bg.style.boxShadow=OUTRO_BORDER_COLS[outroBorderIdx%OUTRO_BORDER_COLS.length];
     outroBorderIdx++;
     outroBorderTimer=setTimeout(step,650);
   }
   step();
 }
-const OUTRO_BORDER_COLOURS=['rgba(255,107,157,.9)','rgba(140,0,255,.9)','rgba(0,200,255,.9)','rgba(255,200,0,.9)','rgba(0,255,120,.9)'];
 
 function rgTouchBurst(e){
   const x=e.clientX||e.touches&&e.touches[0]&&e.touches[0].clientX||window.innerWidth/2;
