@@ -561,32 +561,24 @@ body.p1-active #p02-petals,body.p1-active #p02-sparkles{display:none;}
 .s-outro { display:none; align-items:center; justify-content:center; }
 .s-outro.on { display:flex; flex-direction:column; }
 
-/* Frame wrap — Phone frame ki tarah fit karne ke liye */
+/* Frame wrap — centred, fills most of screen */
 .outro-frame-wrap {
-  position: relative;
-  /* Width aur Height ko Phase-0/Phase-2 ke slots ki tarah set kiya */
-  width: min(90vw, 380px); 
-  height: min(160vw, 680px); 
-  aspect-ratio: 9/16; /* Mobile ratio */
-  border-radius: 36px; /* Phone frame ka smooth radius */
-  overflow: hidden;
-  flex-shrink: 0;
-  z-index: 2;
-  box-shadow: 0 0 40px rgba(0,0,0,0.8);
+  position:relative;
+  width:min(92vw,480px);
+  height:min(92vw,480px);
+  border-radius:22px;
+  overflow:hidden;
+  flex-shrink:0;
+  z-index:2;
 }
 
-/* Multi-colour cycling border — Edges se chipka hua */
+/* Multi-colour cycling border */
 .outro-border-glow {
-  position: absolute;
-  inset: 0; /* Isse border edges se chipak jayega */
-  z-index: 4;
-  pointer-events: none;
-  border-radius: 36px; /* Frame wrap ke radius se match hona chahiye */
-  border: 4px solid; /* Thoda mota border "Luxe" feel ke liye */
-  animation: outroBorder 4s linear infinite;
-  box-sizing: border-box; /* Taaki border andar ki taraf rahe */
+  position:absolute;inset:0;z-index:4;pointer-events:none;
+  border-radius:22px;
+  border:3px solid;
+  animation:outroBorder 4s linear infinite;
 }
-
 @keyframes outroBorder{
   0%  {border-color:#FF007F;box-shadow:0 0 18px #FF007F,0 0 40px #FF007F88,inset 0 0 30px rgba(255,0,127,.12);}
   16% {border-color:#FF6600;box-shadow:0 0 18px #FF6600,0 0 40px #FF660088,inset 0 0 30px rgba(255,102,0,.12);}
@@ -597,16 +589,12 @@ body.p1-active #p02-petals,body.p1-active #p02-sparkles{display:none;}
   100%{border-color:#FF007F;box-shadow:0 0 18px #FF007F,0 0 40px #FF007F88,inset 0 0 30px rgba(255,0,127,.12);}
 }
 
-/* Outro video — Full cover with radius */
+/* Outro video */
 .outro-vid {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 34px; /* Border ke just andar fit hone ke liye */
-  display: block;
-  z-index: 1;
+  position:absolute;inset:0;width:100%;height:100%;
+  object-fit:cover;border-radius:20px;
+  display:block;z-index:1;
+  transform:translateZ(0);will-change:transform;
 }
 
 /* Petal/heart layer over everything */
@@ -818,27 +806,22 @@ const ENABLE_UPLOAD = true;
 ───────────────────────────────────────────────────────── */
 const ZEROX_URL = 'https://your-zerox-link-here.com';  // ← EDIT THIS
 
-// P0 - Optimized with Auto-format, Auto-quality, and Bitrate limit
 let P0 = [
-  'https://res.cloudinary.com/dixl7wxca/video/upload/f_auto,q_auto,br_2m/a1_wtfbzr.mp4',
-  'https://res.cloudinary.com/dixl7wxca/video/upload/f_auto,q_auto,br_2m/a2_pixowx.mp4',
-  'https://res.cloudinary.com/dixl7wxca/video/upload/f_auto,q_auto,br_2m/a3_rwfpbr.mp4',
-  'https://res.cloudinary.com/dixl7wxca/video/upload/f_auto,q_auto,br_2m/a4_jowtaq.mp4',
-  'https://res.cloudinary.com/dixl7wxca/video/upload/f_auto,q_auto,br_2m/a5k_k86t3b.mp4',
+  'https://res.cloudinary.com/dixl7wxca/video/upload/a1_wtfbzr.mp4',
+  'https://res.cloudinary.com/dixl7wxca/video/upload/a2_pixowx.mp4',
+  'https://res.cloudinary.com/dixl7wxca/video/upload/a3_rwfpbr.mp4',
+  'https://res.cloudinary.com/dixl7wxca/video/upload/a4_jowtaq.mp4',
+  'https://res.cloudinary.com/dixl7wxca/video/upload/a5k_k86t3b.mp4',
 ];
-
-// P2 - Optimized
 let P2 = [
-  'https://res.cloudinary.com/dixl7wxca/video/upload/f_auto,q_auto,br_2m/b1k_emhrxr.mp4',
-  'https://res.cloudinary.com/dixl7wxca/video/upload/f_auto,q_auto,br_2m/b2_vtgdph.mp4',
-  'https://res.cloudinary.com/dixl7wxca/video/upload/f_auto,q_auto,br_2m/b3_hpddmn.mp4',
-  'https://res.cloudinary.com/dixl7wxca/video/upload/f_auto,q_auto,br_2m/b4_qvlk0f.mp4',
-  'https://res.cloudinary.com/dixl7wxca/video/upload/f_auto,q_auto,br_2m/b5_y3fzmf.mp4',
+  'https://res.cloudinary.com/dixl7wxca/video/upload/b1k_emhrxr.mp4',
+  'https://res.cloudinary.com/dixl7wxca/video/upload/b2_vtgdph.mp4',
+  'https://res.cloudinary.com/dixl7wxca/video/upload/b3_hpddmn.mp4',
+  'https://res.cloudinary.com/dixl7wxca/video/upload/b4_qvlk0f.mp4',
+  'https://res.cloudinary.com/dixl7wxca/video/upload/b5_y3fzmf.mp4',
 ];
-
-// P1 Clips - Optimized
-let P1_V1 = 'https://res.cloudinary.com/dixl7wxca/video/upload/f_auto,q_auto,br_2m/c1k_kvryac.mp4';
-let P1_V2 = 'https://res.cloudinary.com/dixl7wxca/video/upload/f_auto,q_auto,br_2m/c2_xdh8hd.mp4';
+let P1_V1  = 'https://res.cloudinary.com/dixl7wxca/video/upload/c1k_kvryac.mp4';
+let P1_V2  = 'https://res.cloudinary.com/dixl7wxca/video/upload/c2_xdh8hd.mp4';
 let P1_GIFS = [
   'gif1.gif','gif2.gif','gif3.gif','gif4.gif','gif5.gif',
 ];
@@ -855,7 +838,7 @@ let P1_SUCC_GIF2 = 'gif7.gif';             // second success gif — upload in c
 let P1_SUCC_GIF2_FB = 'https://media.tenor.com/JqbHaO7UMiMAAAAC/love-heart.gif';
 let P1_M4A = 'song.m4a';                   // ← Phase-1 background m4a
 let OUTRO_M4A = 'outro.m4a';               // ← Final page looping m4a
-let P2_OUTRO = 'https://res.cloudinary.com/dixl7wxca/video/upload/f_auto,q_auto,br_2m/lp_u3rpcv.mp4';               // ← Final page looping mp4 slot
+let OUTRO_VID = 'outro.mp4';               // ← Final page looping mp4 slot
 let LAST_VID  = 'last.mp4';               // ← Regards page looping mp4
 let P2_M4A    = 'outro.m4a';              // ← Regards page looping m4a
 let P1_SUCC_FB  = 'https://media.tenor.com/JqbHaO7UMiMAAAAC/love-heart.gif';
@@ -1050,12 +1033,6 @@ function startMeter(){
   $('pct').textContent='0%';
   $('prog-circ').style.strokeDashoffset=CIRC;
   $('gw').classList.remove('show');
-  /* Pre-buffer P1 music during the meter (~5 s) so it plays with zero delay */
-  const _pmPre=$('p1Music');
-  $('p1MusicSrc').src=P1_M4A;
-  _pmPre.preload='auto';
-  _pmPre.loop=false;
-  _pmPre.load();
   let count=0;
   const t=setInterval(()=>{
     count++;
@@ -1064,16 +1041,7 @@ function startMeter(){
     if(count>=143){
       clearInterval(t);
       $('gw').classList.add('show');
-      setTimeout(()=>{ spawnP02Petals(); spawnP02Sparkles(); startPlayer(P0,'s-player',enterP1,()=>{
-        /* 2 s before last P0 clip ends — start P1 music (already buffered) */
-        const pm=$('p1Music');
-        if(pm.paused){ pm.volume=0.75; pm.play().catch(()=>{}); }
-        if(!pm._glSet){ pm._glSet=true;
-          pm.addEventListener('timeupdate',function(){
-            if(pm.duration&&pm.currentTime>=pm.duration-0.08){pm.currentTime=0;pm.play().catch(()=>{});}
-          });
-        }
-      }); },2600);
+      setTimeout(()=>{ spawnP02Petals(); spawnP02Sparkles(); startPlayer(P0,'s-player',enterP1); },2600);
     }
   },35);
 }
@@ -1148,7 +1116,7 @@ function preloadVideo(url) {
   return promise;
 }
    
-function startPlayer(clipList, screenId, onDoneCb, onLastClipNearEnd){
+function startPlayer(clipList, screenId, onDoneCb, isP2flag){
   const isP2 = screenId === 's-player2';
   const glowEl   = isP2 ? bGlow2   : bGlow;
   const cfEl     = isP2 ? cFlash2  : cFlash;
@@ -1213,20 +1181,6 @@ function startPlayer(clipList, screenId, onDoneCb, onLastClipNearEnd){
           nextEl.src=nextUrl;
           nextEl.load();
         }
-      }
-
-      /* Near-end callback: fire onLastClipNearEnd 2 s before the last clip finishes
-         so music / transitions can start early with zero perceived gap. */
-      if(onLastClipNearEnd && idx===clipList.length-1){
-        let _nf=false;
-        const _nT=()=>{
-          if(!el.duration||el.duration<=2.5||el.currentTime<el.duration-2)return;
-          if(_nf)return;
-          _nf=true;
-          el.removeEventListener('timeupdate',_nT);
-          onLastClipNearEnd();
-        };
-        el.addEventListener('timeupdate',_nT);
       }
     };
 
@@ -1307,16 +1261,13 @@ function enterP1(){
   showP1('s-p1-card');
   /* Buffer vid2 silently — frame CSS (opacity:0) already hides it */
   p1v2.src=P1_V2; p1v2.muted=true; p1v2.currentTime=0; p1v2.load();
-  /* P1 music — may have already started 2 s early via onLastClipNearEnd.
-     Only play if still paused; set up gapless loop listener exactly once. */
+  /* Start P1 background music — loop so it never stops mid-confession */
   const pm=$('p1Music');
-  pm.loop=false;
-  if(pm.paused){ pm.volume=0.75; pm.play().catch(()=>{}); }
-  if(!pm._glSet){ pm._glSet=true;
-    pm.addEventListener('timeupdate',function(){
-      if(pm.duration&&pm.currentTime>=pm.duration-0.08){pm.currentTime=0;pm.play().catch(()=>{});}
-    });
-  }
+  pm.loop=true;
+  $('p1MusicSrc').src=P1_M4A;
+  pm.load();
+  pm.volume=0.75;
+  pm.play().catch(()=>{});
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -1434,17 +1385,18 @@ function leaveV1(){
    REGARDS PAGE
 ══════════════════════════════════════════════════════════ */
 function showRegardsPage(){
-  /* ── Music: may already be playing (started 2 s early via onLastClipNearEnd).
-        Only start/fade if still paused; set up gapless loop exactly once. ── */
+  /* ── Music: fire immediately — already preloaded in startPhase2, zero load delay ── */
   const pm2=$('p2Music');
-  if(pm2.paused){ pm2.currentTime=0; pm2.volume=0; pm2.play().catch(()=>{}); }
-  let _v=pm2.volume;
-  const _fade=setInterval(()=>{_v=Math.min(_v+0.085,0.85);pm2.volume=_v;if(_v>=0.85)clearInterval(_fade);},50);
-  if(!pm2._glSet){ pm2._glSet=true;
-    pm2.addEventListener('timeupdate',function(){
-      if(pm2.duration&&pm2.currentTime>=pm2.duration-0.08){pm2.currentTime=0;pm2.play().catch(()=>{});}
-    });
-  }
+  pm2.currentTime=0;
+  pm2.volume=0;
+  pm2.play().catch(()=>{});
+  /* Smooth 500 ms volume ramp so music feels like it rises with the transition */
+  let _v=0;
+  const _fade=setInterval(()=>{
+    _v=Math.min(_v+0.085,0.85);
+    pm2.volume=_v;
+    if(_v>=0.85)clearInterval(_fade);
+  },50);
 
   /* ── Cinematic dark-rose bloom curtain ── */
   const curtain=$('outroCurtain');
@@ -1577,25 +1529,15 @@ function startPhase2(){
   const pm=$('p1Music'); pm.pause(); pm.currentTime=0;
   document.body.classList.remove('p1-active');
   spawnDecos(decoLayer2);
-  /* Pre-buffer P2 outro music now — plays 2 s before last clip ends */
+  /* Pre-buffer outro music NOW so it is fully ready the instant the last P2 clip ends —
+     no load delay during the transition. Volume stays 0 until showRegardsPage fades it in. */
   const pm2=$('p2Music');
   pm2.pause(); pm2.currentTime=0;
   $('p2MusicSrc').src=P2_M4A;
-  pm2.loop=false;
+  pm2.loop=true;
   pm2.volume=0;
   pm2.load();
-  startPlayer(P2,'s-player2', showRegardsPage, ()=>{
-    /* 2 s before last P2 clip ends — start outro music with fade-in */
-    if(pm2.paused){ pm2.currentTime=0; pm2.volume=0; pm2.play().catch(()=>{}); }
-    let _v=pm2.volume;
-    const _fi=setInterval(()=>{_v=Math.min(_v+0.085,0.85);pm2.volume=_v;if(_v>=0.85)clearInterval(_fi);},50);
-    /* Gapless loop — set once */
-    if(!pm2._glSet){ pm2._glSet=true;
-      pm2.addEventListener('timeupdate',function(){
-        if(pm2.duration&&pm2.currentTime>=pm2.duration-0.08){pm2.currentTime=0;pm2.play().catch(()=>{});}
-      });
-    }
-  });
+  startPlayer(P2,'s-player2', showRegardsPage);
 }
 p1v2.addEventListener('ended', startPhase2);
 // zerox-btn removed from p1-v2 — phase2 triggered only by p1v2.ended
