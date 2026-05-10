@@ -287,8 +287,32 @@ body.p1-active #p02-petals,body.p1-active #p02-sparkles{display:none;}
   100%{filter:drop-shadow(0 0 6px #E8436Acc) drop-shadow(0 0 10px #C2005F88);}
 }
 
-/* Question text */
-.p1-question{font-family:var(--font-serif);font-style:italic;font-weight:400;font-size:clamp(20px,6vw,28px);line-height:1.38;color:var(--champagne);text-shadow:var(--neon-champagne);padding:0 8px;}
+/* Question text — 2-line card */
+.p1-question{
+  display:flex;flex-direction:column;align-items:center;gap:10px;
+  padding:0 12px;text-align:center;
+}
+/* Line 1 — main sentence: Cormorant Garamond italic, large, champagne neon glow */
+.p1-q-main{
+  font-family:'Cormorant Garamond',Georgia,serif;
+  font-style:italic;font-weight:600;
+  font-size:clamp(22px,6.5vw,32px);
+  line-height:1.28;
+  color:var(--champagne);
+  text-shadow:0 0 10px #FFE8EF,0 0 28px #FFB5C8cc,0 0 55px #E8436A77,0 0 90px #C2005F44;
+  letter-spacing:.02em;
+}
+/* Line 2 — sub sentence: Dancing Script, smaller, blush-rose glow */
+.p1-q-sub{
+  font-family:'Dancing Script',cursive;
+  font-weight:700;
+  font-size:clamp(14px,4vw,19px);
+  line-height:1.3;
+  color:var(--blush);
+  text-shadow:0 0 8px #FFB5C8ee,0 0 20px #E8436Aaa,0 0 42px #C2005F66;
+  letter-spacing:.01em;
+  opacity:.92;
+}
 
 /* Step dots — ca-main exact */
 .p1-sdots{display:flex;gap:7px;align-items:center;}
@@ -563,7 +587,7 @@ body.p1-active #p02-petals,body.p1-active #p02-sparkles{display:none;}
 
 /* Outro video — fullscreen exactly like phase-2 clip slots (.cv) */
 .outro-vid {
-  width:100%;height:100%;object-fit:contain;display:block;background:#000;
+  width:100%;height:100%;object-fit:cover;display:block;background:#000;
   transform:translateZ(0);will-change:transform;
 }
 
@@ -814,17 +838,17 @@ let P1_SUCC_GIF2 = 'gif7.gif';             // second success gif — upload in c
 let P1_SUCC_GIF2_FB = 'https://media.tenor.com/JqbHaO7UMiMAAAAC/love-heart.gif';
 let P1_M4A = 'song.m4a';                   // ← Phase-1 background m4a
 let OUTRO_M4A = 'outro.m4a';               // ← Final page looping m4a
-let OUTRO_VID = 'https://res.cloudinary.com/dixl7wxca/video/upload/lp_u3rpcv.mp4';               // ← Final page looping mp4 slot
+let OUTRO_VID = 'outro.mp4';               // ← Final page looping mp4 slot
 let LAST_VID  = 'last.mp4';               // ← Regards page looping mp4
 let P2_M4A    = 'outro.m4a';              // ← Regards page looping m4a
 let P1_SUCC_FB  = 'https://media.tenor.com/JqbHaO7UMiMAAAAC/love-heart.gif';
 
 const P1_TEXTS = [
-  'Do you love me? 💗',
-  'Think again, wisely… 🥺',
-  'Are you really sure? 💔',
-  'Please reconsider… 🌹',
-  'Last chance, my love 💗',
+  { main:'Do you love me? 💗',           sub:'your heart already knows the truth…' },
+  { main:'Think again, wisely… 🥺',       sub:'some choices last a lifetime' },
+  { main:'Are you really sure? 💔',       sub:'a love like mine comes only once' },
+  { main:'Please reconsider… 🌹',         sub:'I\'ve waited so long for this moment' },
+  { main:'Last chance, my love 💗',       sub:'don\'t let this slip away from us…' },
 ];
 
 /* ══════════════════════════════════════════════════════════
@@ -1181,7 +1205,7 @@ function startPlayer(clipList, screenId, onDoneCb, isP2flag){
     if(idx===clipList.length-1){
       let _musicFired=false;
       const onMusicPre=()=>{
-        if(_musicFired||!el.duration||el.currentTime<el.duration-2.5)return;
+        if(_musicFired||!el.duration||el.currentTime<el.duration-1.5)return;
         _musicFired=true;
         el.removeEventListener('timeupdate',onMusicPre);
         if(!isP2){
@@ -1312,7 +1336,8 @@ function loadScene(idx){
   const q=$('p1-q');
   q.style.opacity='0'; q.style.transform='translateY(8px)';
   setTimeout(()=>{
-    q.textContent=P1_TEXTS[idx];
+    const t=P1_TEXTS[idx];
+    q.innerHTML=`<span class="p1-q-main">${t.main}</span><span class="p1-q-sub">${t.sub}</span>`;
     q.style.transition='opacity .4s ease,transform .4s ease';
     q.style.opacity='1'; q.style.transform='translateY(0)';
   },200);
