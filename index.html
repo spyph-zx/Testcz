@@ -1709,19 +1709,31 @@ function startOutroPage(){
     }
   });
 
-  /* Outro m4a — starts immediately, loops seamlessly */
+  /* Outro m4a — starts with delay ONLY the first time */
   const om = new Audio();
   om.src = OUTRO_M4A;
-  om.loop = false; // manual loop for zero-gap
+  om.loop = false; 
   om.volume = 0.82;
   om.preload = 'auto';
   om.load();
-  om.addEventListener('canplaythrough',()=>{ om.play().catch(()=>{}); },{once:true});
-  /* Zero-gap loop: restart at 0.4s before end */
-  om.addEventListener('timeupdate',()=>{
+
+  let firstPlayDone = false; // Ye check karega ki pehli baar play ho gaya ya nahi
+
+  om.addEventListener('canplaythrough', () => { 
+    if(!firstPlayDone) {
+      setTimeout(() => {
+        om.play().catch(() => {});
+        firstPlayDone = true; // Ab loop mein delay nahi aayega
+      }, 2000); // Sirf pehli baar ka 2 second delay
+    }
+  }, {once: true});
+
+  /* Seamless loop: restart at 0.4s before end (No Delay here) */
+  om.addEventListener('timeupdate', () => {
     if(om.duration && om.currentTime >= om.duration - 0.4){
       om.currentTime = 0;
-      om.play().catch(()=>{});
+      // Yahan koi setTimeout nahi hai, isliye loop seamless rahega
+      om.play().catch(() => {});
     }
   });
   window._outroMusic = om;
