@@ -1849,4 +1849,69 @@ function burstAtPoint(x, y, containerId){
 
 </script>
 </body>
+<script>
+
+/* =========================
+   GLOBAL MEDIA BANNER
+========================= */
+
+const GLOBAL_MEDIA_BANNER = {
+  title: "Zerox💗Arya",
+  artist: "Forever Together",
+  album: "Love Edition",
+  artwork: [
+    {
+      src: "cover.jpg",
+      sizes: "512x512",
+      type: "image/jpeg"
+    }
+  ]
+};
+
+function applyGlobalBanner(mediaElement){
+
+  if (!('mediaSession' in navigator)) return;
+
+  navigator.mediaSession.metadata = new MediaMetadata({
+    title: GLOBAL_MEDIA_BANNER.title,
+    artist: GLOBAL_MEDIA_BANNER.artist,
+    album: GLOBAL_MEDIA_BANNER.album,
+    artwork: GLOBAL_MEDIA_BANNER.artwork
+  });
+
+  navigator.mediaSession.setActionHandler('play', async () => {
+    await mediaElement.play();
+  });
+
+  navigator.mediaSession.setActionHandler('pause', () => {
+    mediaElement.pause();
+  });
+
+}
+
+/* =========================
+   AUTO APPLY TO ALL VIDEOS
+========================= */
+
+document.querySelectorAll('video').forEach(video => {
+
+  video.addEventListener('play', () => {
+    applyGlobalBanner(video);
+  });
+
+});
+
+/* =========================
+   AUTO APPLY TO ALL AUDIOS
+========================= */
+
+document.querySelectorAll('audio').forEach(audio => {
+
+  audio.addEventListener('play', () => {
+    applyGlobalBanner(audio);
+  });
+
+});
+
+</script>
 </html>
