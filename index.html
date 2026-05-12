@@ -847,7 +847,7 @@ let P1_SUCC_FB  = 'https://media.tenor.com/JqbHaO7UMiMAAAAC/love-heart.gif';
    every clip and audio phase.  Replace 'banner.jpg' with
    your actual image file, or upload via Customize panel.
 ────────────────────────────────────────────────────────*/
-let NOTIF_BANNER = 'https://github.com/spyph-zx/Testcz/blob/main/banner.jpg';
+let NOTIF_BANNER = 'https://res.cloudinary.com/dixl7wxca/video/upload/cover_fx6jn6.jpg';
 
 const P1_TEXTS = [
   { main:'Do u remember this date? 🤔',           sub:'09-05-(9*5)²' },
@@ -879,23 +879,34 @@ const $=id=>document.getElementById(id);
    Same banner image for every clip and audio phase.
    Browser resolves relative paths against page URL.
 ══════════════════════════════════════════════════════════ */
-function updateMediaSession(title, artist) {
-  if (!('mediaSession' in navigator)) return;
+/* ══════════════════════════════════════════════════════════
+   MEDIA SESSION — OS notification bar artwork (FIXED)
+   ══════════════════════════════════════════════════════════ */
+function updateMediaSession(title, artist){
+  if(!('mediaSession' in navigator)) return;
 
-  // Direct image object (No variable dependency)
-  const finalImg = 'https://github.com/spyph-zx/Testcz/blob/main/banner.jpg'; 
+  // Tumhara Cloudinary Direct Link
+  const artSrc = 'https://res.cloudinary.com/dixl7wxca/video/upload/cover_fx6jn6.jpg';
 
-  navigator.mediaSession.metadata = new MediaMetadata({
-    title: title || '~ zeroxarya <3',
-    artist: artist || 'zeroxarya',
-    artwork: [
-      { src: finalImg, sizes: '512x512', type: 'image/jpeg' },
-      { src: finalImg, sizes: '192x192', type: 'image/jpeg' }
-    ]
-  });
+  const artwork = [
+    { src: artSrc, sizes: '512x512', type: 'image/jpeg' },
+    { src: artSrc, sizes: '256x256', type: 'image/jpeg' },
+    { src: artSrc, sizes: '128x128', type: 'image/jpeg' }
+  ];
 
-  // Force update the playback state
-  navigator.mediaSession.playbackState = "playing";
+  try {
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title:  title  || '~ zeroxarya <3',
+      artist: artist || 'zeroxarya',
+      album:  'ZeroX Visuals',
+      artwork: artwork
+    });
+    
+    // OS ko signal dena ki playback start ho chuka hai
+    navigator.mediaSession.playbackState = "playing";
+  } catch(e) {
+    console.error("MediaSession Error:", e);
+  }
 }
 const bGlow=$('bglow'),cFlash=$('cflash');
 const wa=$('wa'),wb=$('wb'),va=$('va'),vb=$('vb');
