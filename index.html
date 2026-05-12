@@ -880,30 +880,44 @@ const $=id=>document.getElementById(id);
    Browser resolves relative paths against page URL.
 ══════════════════════════════════════════════════════════ */
 /* ══════════════════════════════════════════════════════════
-   MEDIA SESSION — Rectangular Fit Optimization
+   MEDIA SESSION — OS notification bar artwork (STABLE)
    ══════════════════════════════════════════════════════════ */
 function updateMediaSession(title, artist) {
   if (!('mediaSession' in navigator)) return;
 
-  const finalImg = 'https://res.cloudinary.com/dixl7wxca/video/upload/cover_fx6jn6.jpg';
+  // Tumhara working Cloudinary Direct Link (No cache buster to avoid breaking)
+  const artSrc = 'https://res.cloudinary.com/dixl7wxca/video/upload/cover_fx6jn6.jpg';
+
+  const artwork = [
+    // Sabse upar 1280x720 sizes dene se Android ise rectangular space mein stretch karne ki koshish karta hai
+    { src: artSrc, sizes: '1280x720', type: 'image/jpeg' }, 
+    { src: artSrc, sizes: '512x512', type: 'image/jpeg' },
+    { src: artSrc, sizes: '192x192', type: 'image/jpeg' }
+  ];
 
   try {
     navigator.mediaSession.metadata = new MediaMetadata({
       title: title || '~ zeroxarya <3',
       artist: artist || 'zeroxarya',
-      album: 'ZeroX Hub',
-      artwork: [
-        // Phone ko Wide (Rectangular) version batane ke liye
-        { src: finalImg, sizes: '1280x720', type: 'image/jpeg' }, 
-        { src: finalImg, sizes: '512x512', type: 'image/jpeg' }
-      ]
+      album: 'ZeroX Visuals',
+      artwork: artwork
     });
     
+    // Playback state ko "playing" force karna zaroori hai display ke liye
     navigator.mediaSession.playbackState = "playing";
   } catch (e) {
-    console.error("MediaSession Layout Error:", e);
+    console.error("MediaSession Error:", e);
   }
 }
+
+/* --- Har play event par metadata force refresh --- */
+document.addEventListener('play', (e) => {
+  if (e.target.tagName === 'AUDIO' || e.target.tagName === 'VIDEO') {
+    setTimeout(() => {
+      updateMediaSession('~ zeroxarya <3', 'zeroxarya');
+    }, 400); // Thoda extra delay stability ke liye
+  }
+}, true);
 const bGlow=$('bglow'),cFlash=$('cflash');
 const wa=$('wa'),wb=$('wb'),va=$('va'),vb=$('vb');
 const bGlow2=$('bglow2'),cFlash2=$('cflash2');
