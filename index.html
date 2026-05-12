@@ -880,32 +880,28 @@ const $=id=>document.getElementById(id);
    Browser resolves relative paths against page URL.
 ══════════════════════════════════════════════════════════ */
 /* ══════════════════════════════════════════════════════════
-   MEDIA SESSION — OS notification bar artwork (FIXED)
+   MEDIA SESSION — Rectangular Fit Optimization
    ══════════════════════════════════════════════════════════ */
-function updateMediaSession(title, artist){
-  if(!('mediaSession' in navigator)) return;
+function updateMediaSession(title, artist) {
+  if (!('mediaSession' in navigator)) return;
 
-  // Tumhara Cloudinary Direct Link
-  const artSrc = 'https://res.cloudinary.com/dixl7wxca/image/upload/cover_fx6jn6.jpg';
-
-  const artwork = [
-    { src: artSrc, sizes: '512x512', type: 'image/jpeg' },
-    { src: artSrc, sizes: '256x256', type: 'image/jpeg' },
-    { src: artSrc, sizes: '128x128', type: 'image/jpeg' }
-  ];
+  const finalImg = 'https://res.cloudinary.com/dixl7wxca/video/upload/cover_fx6jn6.jpg';
 
   try {
     navigator.mediaSession.metadata = new MediaMetadata({
-      title:  title  || '~ zeroxarya <3',
+      title: title || '~ zeroxarya <3',
       artist: artist || 'zeroxarya',
-      album:  'ZeroX Visuals',
-      artwork: artwork
+      album: 'ZeroX Hub',
+      artwork: [
+        // Phone ko Wide (Rectangular) version batane ke liye
+        { src: finalImg, sizes: '1280x720', type: 'image/jpeg' }, 
+        { src: finalImg, sizes: '512x512', type: 'image/jpeg' }
+      ]
     });
     
-    // OS ko signal dena ki playback start ho chuka hai
     navigator.mediaSession.playbackState = "playing";
-  } catch(e) {
-    console.error("MediaSession Error:", e);
+  } catch (e) {
+    console.error("MediaSession Layout Error:", e);
   }
 }
 const bGlow=$('bglow'),cFlash=$('cflash');
