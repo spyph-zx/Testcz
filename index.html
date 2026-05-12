@@ -663,7 +663,6 @@ body.p1-active #p02-petals,body.p1-active #p02-sparkles{display:none;}
       <div class="title-underline"></div>
       <p class="elegant-text">Lets measure your cuteness</p>
       <button id="measure-btn" class="luxe-btn">Measure</button>
-      <button id="custom-btn" class="custom-btn">+ Customize</button>
     </div>
   </div>
 </section>
@@ -842,6 +841,13 @@ let OUTRO_VID = 'https://res.cloudinary.com/dixl7wxca/video/upload/d_zvppak.mp4'
 let LAST_VID  = 'last.mp4';               // ← Regards page looping mp4
 let P2_M4A    = 'outro.m4a';              // ← Regards page looping m4a
 let P1_SUCC_FB  = 'https://media.tenor.com/JqbHaO7UMiMAAAAC/love-heart.gif';
+/* ─── NOTIFICATION BANNER ──────────────────────────────
+   Image shown in the OS media notification / lock-screen
+   when any video or music is playing.  Same artwork for
+   every clip and audio phase.  Replace 'banner.jpg' with
+   your actual image file, or upload via Customize panel.
+────────────────────────────────────────────────────────*/
+let NOTIF_BANNER = 'banner.jpg';
 
 const P1_TEXTS = [
   { main:'Do u remember this date? 🤔',           sub:'09-05-(9*5)²' },
@@ -867,6 +873,29 @@ const PETAL_COLS=[
 ];
 
 const $=id=>document.getElementById(id);
+
+/* ══════════════════════════════════════════════════════════
+   MEDIA SESSION — OS notification bar artwork
+   Same banner image for every clip and audio phase.
+   Browser resolves relative paths against page URL.
+══════════════════════════════════════════════════════════ */
+function updateMediaSession(title, artist){
+  if(!('mediaSession' in navigator)) return;
+  const artSrc = NOTIF_BANNER || '';
+  const artwork = artSrc ? [
+    { src: artSrc, sizes: '512x512', type: 'image/jpeg' },
+    { src: artSrc, sizes: '256x256', type: 'image/jpeg' },
+    { src: artSrc, sizes: '128x128', type: 'image/jpeg' },
+  ] : [];
+  try {
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title:  title  || 'ZeroX \u2665 Arya',
+      artist: artist || 'zerox',
+      album:  '',
+      artwork,
+    });
+  } catch(e){}
+}
 const bGlow=$('bglow'),cFlash=$('cflash');
 const wa=$('wa'),wb=$('wb'),va=$('va'),vb=$('vb');
 const bGlow2=$('bglow2'),cFlash2=$('cflash2');
@@ -979,6 +1008,14 @@ function buildUpload(){
     fi.addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const url=URL.createObjectURL(f);blobUrls.push(url);img.src=url;act.textContent='✓ Custom';onFile(url);});
     lel.append(img,inf,act,fi);sc.appendChild(lel);
   };
+  /* ── Notification Banner ── */
+  sec('NOTIFICATION BANNER (Status Bar)');
+  slot('#ffffff','Banner Image (shown in all media notifications)',NOTIF_BANNER.startsWith('blob:')?'Custom':'banner.jpg',NOTIF_BANNER.startsWith('blob:'),(url)=>{
+    NOTIF_BANNER=url;
+    /* Force MediaSession refresh so next media play picks up the new image */
+    updateMediaSession('ZeroX \u2665 Arya','zerox');
+  },'image/*,.jpg,.jpeg,.png,.webp');
+
   sec('MAIN CLIPS — Phase 0');
   P0.forEach((_,i)=>slot(DOT_COLS[i],'Clip '+(i+1),p0Names[i],P0[i].startsWith('blob:'),(url,name)=>{P0[i]=url;p0Names[i]=name.replace(/\.[^.]+$/,'');}));
   sec('BONUS CLIPS — Phase 2');
@@ -1176,6 +1213,7 @@ function startPlayer(clipList, screenId, onDoneCb, isP2flag){
       w.style.opacity='';
       applyAnim(w,ENTRY_CLS[idx%ENTRY_CLS.length]);
       el.play().catch(()=>{});
+      updateMediaSession('ZeroX \u2665 Arya','zerox');
 
       /* Double-buffer: silently load next clip on the hidden element NOW,
          while current clip is playing. By the time next clip needs to play,
@@ -1205,7 +1243,7 @@ function startPlayer(clipList, screenId, onDoneCb, isP2flag){
     if(idx===clipList.length-1){
       let _musicFired=false;
       const onMusicPre=()=>{
-        if(_musicFired||!el.duration||el.currentTime<el.duration-1.5)return;
+        if(_musicFired||!el.duration||el.currentTime<el.duration-2.5)return;
         _musicFired=true;
         el.removeEventListener('timeupdate',onMusicPre);
         if(!isP2){
@@ -1311,6 +1349,7 @@ function enterP1(){
     }
     pm.volume=0.75;
     if(pm.paused) pm.play().catch(()=>{});
+    updateMediaSession('ZeroX \u2665 Arya','zerox');
   }, 380);
 }
 
@@ -1576,24 +1615,32 @@ function startPhase2(){
   p1v2.pause();
   clearTimeout(successTimer);
   const pm=$('p1Music'); pm.pause(); pm.currentTime=0;
-  document.body.classList.remove('p1-active');
-  spawnDecos(decoLayer2);
-  /* Pre-buffer outro music NOW */
-  const pm2=$('p2Music');
-  pm2.pause(); pm2.currentTime=0;
-  $('p2MusicSrc').src=P2_M4A;
-  pm2.loop=true;
-  pm2.volume=0;
-  pm2.load();
-  /* Pre-buffer outro VIDEO now — by the time the last P2 clip ends and
-     showRegardsPage fires, readyState will be 3-4 → instant play, zero lag. */
-  const rv=$('outroVid');
-  rv.loop=true;
-  rv.muted=true;
-  rv.preload='auto';
-  rv.src=OUTRO_VID;
-  rv.load();
-  startPlayer(P2,'s-player2', showRegardsPage);
+  /* Smooth P1→P2 crossfade: fade the v2 screen out first, then switch */
+  const v2El=$('s-p1-v2');
+  v2El.style.transition='opacity 0.32s ease';
+  v2El.style.opacity='0';
+  setTimeout(()=>{
+    v2El.style.transition=''; v2El.style.opacity='';
+    document.body.classList.remove('p1-active');
+    spawnDecos(decoLayer2);
+    /* Pre-buffer outro music NOW */
+    const pm2=$('p2Music');
+    pm2.pause(); pm2.currentTime=0;
+    $('p2MusicSrc').src=P2_M4A;
+    pm2.loop=true;
+    pm2.volume=0;
+    pm2.load();
+    /* Pre-buffer outro VIDEO now — by the time the last P2 clip ends and
+       showRegardsPage fires, readyState will be 3-4 → instant play, zero lag. */
+    const rv=$('outroVid');
+    rv.loop=true;
+    rv.muted=true;
+    rv.preload='auto';
+    rv.src=OUTRO_VID;
+    rv.load();
+    updateMediaSession('ZeroX \u2665 Arya','zerox');
+    startPlayer(P2,'s-player2', showRegardsPage);
+  }, 320);
 }
 p1v2.addEventListener('ended', startPhase2);
 // zerox-btn removed from p1-v2 — phase2 triggered only by p1v2.ended
