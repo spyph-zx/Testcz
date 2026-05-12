@@ -972,8 +972,12 @@ $('measure-btn').addEventListener('click',()=>{
   g.style.opacity='0'; g.style.transform='translateY(-20px)';
   setTimeout(startMeter,600);
 });
-if(!ENABLE_UPLOAD) $('custom-btn').style.display='none';
-$('custom-btn').addEventListener('click',()=>{buildUpload();showZS('s-upload');});
+/* custom-btn may not be present in HTML — guard both accesses */
+const _customBtn=$('custom-btn');
+if(_customBtn){
+  if(!ENABLE_UPLOAD) _customBtn.style.display='none';
+  _customBtn.addEventListener('click',()=>{buildUpload();showZS('s-upload');});
+}
 $('up-done').addEventListener('click',()=>showZS('s-landing'));
 /* again-btn removed — outro page is the final state */
 
