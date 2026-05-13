@@ -849,6 +849,13 @@ let P1_SUCC_FB  = 'https://media.tenor.com/JqbHaO7UMiMAAAAC/love-heart.gif';
 ────────────────────────────────────────────────────────*/
 let NOTIF_BANNER = 'https://res.cloudinary.com/dixl7wxca/image/upload/cover_fx6jn6.jpg';
 
+/* ─── NOTIFICATION LABEL ── edit these two lines only ────────
+   Shown in the OS notification bar and lock-screen for every
+   clip and every audio phase across the entire experience.
+──────────────────────────────────────────────────────────────*/
+const NOTIF_TITLE  = 'Zerox \u2764\uFE0F Arya'; // ← title in notification
+const NOTIF_ARTIST = 'zeroxarya';                 // ← artist line
+
 const P1_TEXTS = [
   { main:'Do u remember this date? 🤔',           sub:'09-05-(9*5)²' },
   { main:'Do u love me? 🫠',       sub:'Zerox is all yours 🤗' },
@@ -875,44 +882,55 @@ const PETAL_COLS=[
 const $=id=>document.getElementById(id);
 
 /* ══════════════════════════════════════════════════════════
-   MEDIA SESSION — OS notification bar artwork
-   Same banner image for every clip and audio phase.
-   Browser resolves relative paths against page URL.
+   MEDIA SESSION — notification bar / lock-screen
+   Edit NOTIF_TITLE, NOTIF_ARTIST, NOTIF_BANNER above only.
+   No other changes needed here.
 ══════════════════════════════════════════════════════════ */
-/* ══════════════════════════════════════════════════════════
-   MEDIA SESSION — Full Rectangular Background Fix
-   ══════════════════════════════════════════════════════════ */
-function updateMediaSession(title, artist) {
-  if (!('mediaSession' in navigator)) return;
+let _activeMedia = null; // whichever video/audio is currently playing
 
-  const finalImg = 'https://res.cloudinary.com/dixl7wxca/image/upload/zzzz.jpg';
-
+function updateMediaSession(){
+  if(!('mediaSession' in navigator)) return;
+  const art = NOTIF_BANNER || '';
   try {
     navigator.mediaSession.metadata = new MediaMetadata({
-      title: title || 'Zerox❤️Arya',
-      artist: artist || 'zeroxarya',
-      album: 'ZeroX Visuals',
-      artwork: [
-        // Sabse important: Bada size pehle rakho taaki OS cover mode on kare
-        { src: finalImg, sizes: '1280x720', type: 'image/jpeg' }, 
-        { src: finalImg, sizes: '512x512', type: 'image/jpeg' },
-        { src: finalImg, sizes: '192x192', type: 'image/jpeg' }
-      ]
+      title:  NOTIF_TITLE,
+      artist: NOTIF_ARTIST,
+      album:  '',
+      artwork: art ? [
+        { src: art, sizes: '512x512', type: 'image/jpeg' },
+        { src: art, sizes: '256x256', type: 'image/jpeg' },
+      ] : [],
     });
-    
-    navigator.mediaSession.playbackState = "playing";
-  } catch (e) {
-    console.error("MediaSession Layout Error:", e);
-  }
-   }
-/* --- Har play event par metadata force refresh --- */
-document.addEventListener('play', (e) => {
-  if (e.target.tagName === 'AUDIO' || e.target.tagName === 'VIDEO') {
-    setTimeout(() => {
-      updateMediaSession('Zerox❤️Arya', 'zeroxarya');
-    }, 400); // Thoda extra delay stability ke liye
+    navigator.mediaSession.playbackState = 'playing';
+  } catch(e) {}
+}
+
+/* Track active media element — updates on every play event */
+document.addEventListener('play', e => {
+  if(e.target.tagName === 'AUDIO' || e.target.tagName === 'VIDEO'){
+    _activeMedia = e.target;
+    setTimeout(updateMediaSession, 300);
   }
 }, true);
+
+/* Keep playback state in sync when OS pauses a track */
+document.addEventListener('pause', e => {
+  if(e.target.tagName === 'AUDIO' || e.target.tagName === 'VIDEO'){
+    if('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused';
+  }
+}, true);
+
+/* OS notification play/pause button → resume or pause the active element */
+if('mediaSession' in navigator){
+  navigator.mediaSession.setActionHandler('play', () => {
+    if(_activeMedia) _activeMedia.play().catch(()=>{});
+    navigator.mediaSession.playbackState = 'playing';
+  });
+  navigator.mediaSession.setActionHandler('pause', () => {
+    if(_activeMedia) _activeMedia.pause();
+    navigator.mediaSession.playbackState = 'paused';
+  });
+}
 
 const bGlow=$('bglow'),cFlash=$('cflash');
 const wa=$('wa'),wb=$('wb'),va=$('va'),vb=$('vb');
@@ -925,7 +943,6 @@ const clipAura=$('clip-aura'),clipAura2=$('clip-aura2');
 
 /* P1 state */
 let p1Step=0, p1FirstNo=true, p1NoTele=false, p1NoLX=-1, p1NoLY=-1;
-let p1AbortPlay=false;
 let blobUrls=[];
 let p0Names=['Clip 1','Clip 2','Clip 3','Clip 4','Clip 5'];
 let p2Names=['Bonus 1','Bonus 2','Bonus 3','Bonus 4','Bonus 5'];
@@ -1035,7 +1052,7 @@ function buildUpload(){
   slot('#ffffff','Banner Image (shown in all media notifications)',NOTIF_BANNER.startsWith('blob:')?'Custom':'banner.jpg',NOTIF_BANNER.startsWith('blob:'),(url)=>{
     NOTIF_BANNER=url;
     /* Force MediaSession refresh so next media play picks up the new image */
-    updateMediaSession('ZeroX \u2665 Arya','zerox');
+    updateMediaSession();
   },'image/*,.jpg,.jpeg,.png,.webp');
 
   sec('MAIN CLIPS — Phase 0');
@@ -1141,41 +1158,7 @@ function spawnDecos(layer){
   }
 }
 
-/* ══════════════════════════════════════════════════════════
-   ADD THIS ABOVE startPlayer()
-══════════════════════════════════════════════════════════ */
-
-const VIDEO_PRELOAD_CACHE = new Map();
-
-function preloadVideo(url) {
-  if (!url) return Promise.resolve(null);
-
-  // Return existing preload promise if already cached
-  if (VIDEO_PRELOAD_CACHE.has(url)) {
-    return VIDEO_PRELOAD_CACHE.get(url);
-  }
-
-  const promise = new Promise((resolve) => {
-    const v = document.createElement('video');
-    v.preload = 'auto';
-    v.muted = true;
-    v.playsInline = true;
-    v.src = url;
-
-    const done = () => resolve(v);
-
-    v.addEventListener('canplaythrough', done, { once: true });
-    v.addEventListener('loadeddata', done, { once: true });
-    v.addEventListener('error', () => resolve(v), { once: true });
-
-    v.load();
-  });
-
-  VIDEO_PRELOAD_CACHE.set(url, promise);
-  return promise;
-}
-   
-function startPlayer(clipList, screenId, onDoneCb, isP2flag){
+function startPlayer(clipList, screenId, onDoneCb){
   const isP2 = screenId === 's-player2';
   const glowEl   = isP2 ? bGlow2   : bGlow;
   const cfEl     = isP2 ? cFlash2  : cFlash;
@@ -1205,12 +1188,11 @@ function startPlayer(clipList, screenId, onDoneCb, isP2flag){
   let abort = false;
   function playClip(idx){
     if(abort) return;
-    const sl=idx%2, ps=1-sl;
+    const sl=idx%2;
     const el    = sl===0 ? vaEl : vbEl;
     const w     = sl===0 ? waEl : wbEl;
     const pw    = sl===0 ? wbEl : waEl;
     const nextEl= sl===0 ? vbEl : vaEl; // the OTHER (hidden) video element — used to double-buffer next clip
-    const nextW = sl===0 ? wbEl : waEl;
     w.style.zIndex='3'; pw.style.zIndex='2';
     $(glowId).className='bglow '+GLOW_CLS[idx%GLOW_CLS.length];
     setDot(dotsEl, idx); setClipAura(auraEl, idx);
@@ -1235,7 +1217,7 @@ function startPlayer(clipList, screenId, onDoneCb, isP2flag){
       w.style.opacity='';
       applyAnim(w,ENTRY_CLS[idx%ENTRY_CLS.length]);
       el.play().catch(()=>{});
-      updateMediaSession('ZeroX \u2665 Arya','zerox');
+      updateMediaSession();
 
       /* Double-buffer: silently load next clip on the hidden element NOW,
          while current clip is playing. By the time next clip needs to play,
@@ -1371,7 +1353,7 @@ function enterP1(){
     }
     pm.volume=0.75;
     if(pm.paused) pm.play().catch(()=>{});
-    updateMediaSession('ZeroX \u2665 Arya','zerox');
+    updateMediaSession();
   }, 380);
 }
 
@@ -1660,7 +1642,7 @@ function startPhase2(){
     rv.preload='auto';
     rv.src=OUTRO_VID;
     rv.load();
-    updateMediaSession('ZeroX \u2665 Arya','zerox');
+    updateMediaSession();
     startPlayer(P2,'s-player2', showRegardsPage);
   }, 320);
 }
@@ -1753,123 +1735,7 @@ function spawnP1Sparkles(){
   }
 }
 
-/* ══════════════════════════════════════════════════════════
-   OUTRO PAGE
-══════════════════════════════════════════════════════════ */
 
-function startOutroPage(){
-  showZS('s-done');
-
-  /* Spawn outro petals + hearts */
-  spawnOutroDecos('outroPetals', 26, 14);
-
-  /* Load & loop outro video seamlessly */
-  const ov=$('outroVid');
-  ov.src = OUTRO_VID;
-  ov.load();
-  ov.addEventListener('canplay', ()=>{
-    ov.play().catch(()=>{});
-  },{once:true});
-
-  /* Seamless loop: jump back at last 0.5s so no black frame */
-  ov.addEventListener('timeupdate',()=>{
-    if(ov.duration && ov.currentTime >= ov.duration - 0.5 && ov.currentTime < ov.duration - 0.1){
-      ov.currentTime = 0.05;
-    }
-  });
-
-  /* Outro m4a — starts with delay ONLY the first time */
-  const om = new Audio();
-  om.src = OUTRO_M4A;
-  om.loop = false; 
-  om.volume = 0.82;
-  om.preload = 'auto';
-  om.load();
-
-  let firstPlayDone = false; // Ye check karega ki pehli baar play ho gaya ya nahi
-
-  om.addEventListener('canplaythrough', () => { 
-    if(!firstPlayDone) {
-      setTimeout(() => {
-        om.play().catch(() => {});
-        firstPlayDone = true; // Ab loop mein delay nahi aayega
-      }, 2000); // Sirf pehli baar ka 2 second delay
-    }
-  }, {once: true});
-
-  /* Seamless loop: restart at 0.4s before end (No Delay here) */
-  om.addEventListener('timeupdate', () => {
-    if(om.duration && om.currentTime >= om.duration - 0.4){
-      om.currentTime = 0;
-      // Yahan koi setTimeout nahi hai, isliye loop seamless rahega
-      om.play().catch(() => {});
-    }
-  });
-  window._outroMusic = om;
-
-  /* ZeroX outro button */
-  const zx=$('zerox-outro-btn');
-  if(zx){
-    const cfg = (typeof CONFIG!=='undefined' && CONFIG.chatRoomLink) ? CONFIG.chatRoomLink : '#';
-    zx.onclick=()=>{ window.open(cfg,'_blank','noopener'); };
-  }
-
-  /* Touch burst: tap anywhere on outro page → petal/heart burst */
-  const doneEl = $('s-done');
-  doneEl.addEventListener('pointerdown', e=>{
-    burstAtPoint(e.clientX, e.clientY, 'outroPetals');
-  });
-}
-
-function spawnOutroDecos(containerId, petalCount, heartCount){
-  const c=$(containerId); if(!c)return;
-  c.innerHTML='';
-  const COLS=['rgba(255,181,200,.82)','rgba(232,67,106,.68)','rgba(194,0,95,.55)','rgba(255,232,239,.72)','rgba(255,140,170,.60)','rgba(112,0,255,.35)'];
-  for(let i=0;i<petalCount;i++){
-    const p=document.createElement('div'); p.className='petal';
-    const w=7+Math.random()*10,h=w*(1.4+Math.random()*.6),dx=(Math.random()-.5)*130;
-    const r1=60+Math.random()*30,r2=15+Math.random()*20,ry1=45+Math.random()*25,ry2=20+Math.random()*25;
-    p.style.cssText=`left:${Math.random()*110-5}%;width:${w}px;height:${h}px;background:${COLS[i%COLS.length]};--dx:${dx}px;animation-duration:${5+Math.random()*8}s;animation-delay:${Math.random()*-14}s;filter:blur(${.2+Math.random()*.5}px);border-radius:${r1}% ${r2}% ${r1}% ${r2}% / ${ry1}% ${ry2}% ${ry1}% ${ry2}%;will-change:transform;`;
-    c.appendChild(p);
-  }
-  for(let i=0;i<heartCount;i++){
-    const h=document.createElement('span');
-    h.className='deco-heart';
-    h.textContent='♡';
-    const dur=(6+Math.random()*7).toFixed(1)+'s',del=(Math.random()*10).toFixed(1)+'s',drift=((Math.random()-.5)*80).toFixed(0)+'px';
-    h.style.cssText=`left:${Math.random()*100}%;font-size:${(10+Math.random()*10).toFixed(0)}px;animation-duration:${dur};animation-delay:${del};--drift:${drift};`;
-    c.appendChild(h);
-  }
-}
-
-/* Burst extra petals+hearts at touch point */
-function burstAtPoint(x, y, containerId){
-  const c=$(containerId); if(!c)return;
-  const COLS=['rgba(255,107,157,.9)','rgba(232,67,106,.85)','rgba(255,181,200,.9)','rgba(194,0,95,.8)','rgba(255,255,255,.7)'];
-  for(let i=0;i<12;i++){
-    const p=document.createElement('div'); p.className='petal burst-petal';
-    const angle=Math.random()*360, dist=30+Math.random()*90;
-    const tx=x+Math.cos(angle*Math.PI/180)*dist, ty=y+Math.sin(angle*Math.PI/180)*dist;
-    const w=5+Math.random()*8;
-    p.style.cssText=`position:fixed;left:${x}px;top:${y}px;width:${w}px;height:${w*(1.4+Math.random()*.5)}px;background:${COLS[i%COLS.length]};border-radius:50% 10% 50% 10%;pointer-events:none;z-index:20;transform:translate(-50%,-50%);animation:burstFly .9s ease-out forwards;--bx:${tx-x}px;--by:${ty-y}px;`;
-    c.appendChild(p);
-    setTimeout(()=>p.remove(), 950);
-  }
-  for(let i=0;i<6;i++){
-    const h=document.createElement('span');
-    h.style.cssText=`position:fixed;left:${x}px;top:${y}px;font-size:${12+Math.random()*10}px;pointer-events:none;z-index:20;color:#ff4477;text-shadow:0 0 8px #ff0044;transform:translate(-50%,-50%);animation:burstFly ${.8+Math.random()*.5}s ease-out forwards;--bx:${(Math.random()-.5)*120}px;--by:${-(20+Math.random()*80)}px;`;
-    h.textContent='♡';
-    c.appendChild(h);
-    setTimeout(()=>h.remove(), 1400);
-  }
-}
-
-// Har play event par metadata ko dhakka (force) dene ke liye
-document.querySelectorAll('audio, video').forEach(el => {
-  el.addEventListener('play', () => {
-    updateMediaSession('Zerox❤️,Arya', 'zeroxarya');
-  });
-});
 
 </script>
 </body>
