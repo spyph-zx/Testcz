@@ -847,7 +847,7 @@ let P1_SUCC_FB  = 'https://media.tenor.com/JqbHaO7UMiMAAAAC/love-heart.gif';
    every clip and audio phase.  Replace 'banner.jpg' with
    your actual image file, or upload via Customize panel.
 ────────────────────────────────────────────────────────*/
-let NOTIF_BANNER = 'https://res.cloudinary.com/dixl7wxca/image/upload/zzzz.jpg';
+let NOTIF_BANNER = 'https://res.cloudinary.com/dixl7wxca/image/upload/cover_fx6jn6.jpg';
 
 /* ─── NOTIFICATION LABEL ── edit these two lines only ────────
    Shown in the OS notification bar and lock-screen for every
@@ -905,11 +905,25 @@ function updateMediaSession(){
   } catch(e) {}
 }
 
+/* Continuous wave: keep refreshing metadata on a short interval while playing */
+let _waveTimer = null;
+function _startWave(){
+  if(_waveTimer) return;
+  _waveTimer = setInterval(()=>{
+    if(_activeMedia && !_activeMedia.paused) updateMediaSession();
+  }, 1500);
+}
+function _stopWave(){
+  clearInterval(_waveTimer);
+  _waveTimer = null;
+}
+
 /* Track active media element — updates on every play event */
 document.addEventListener('play', e => {
   if(e.target.tagName === 'AUDIO' || e.target.tagName === 'VIDEO'){
     _activeMedia = e.target;
     setTimeout(updateMediaSession, 300);
+    _startWave();
   }
 }, true);
 
@@ -917,6 +931,7 @@ document.addEventListener('play', e => {
 document.addEventListener('pause', e => {
   if(e.target.tagName === 'AUDIO' || e.target.tagName === 'VIDEO'){
     if('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused';
+    _stopWave();
   }
 }, true);
 
