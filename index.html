@@ -889,7 +889,7 @@ function updateMediaSession(title, artist) {
 
   try {
     navigator.mediaSession.metadata = new MediaMetadata({
-      title: title || '~ zeroxarya <3',
+      title: title || 'Zerox❤️Arya',
       artist: artist || 'zeroxarya',
       album: 'ZeroX Visuals',
       artwork: [
@@ -909,7 +909,7 @@ function updateMediaSession(title, artist) {
 document.addEventListener('play', (e) => {
   if (e.target.tagName === 'AUDIO' || e.target.tagName === 'VIDEO') {
     setTimeout(() => {
-      updateMediaSession('~ zeroxarya <3', 'zeroxarya');
+      updateMediaSession('Zerox❤️Arya', 'zeroxarya');
     }, 400); // Thoda extra delay stability ke liye
   }
 }, true);
@@ -1867,7 +1867,7 @@ function burstAtPoint(x, y, containerId){
 // Har play event par metadata ko dhakka (force) dene ke liye
 document.querySelectorAll('audio, video').forEach(el => {
   el.addEventListener('play', () => {
-    updateMediaSession('~ zeroxarya <3', 'ZeroX Hub');
+    updateMediaSession('Zerox❤️,Arya', 'zeroxarya');
   });
 });
 
