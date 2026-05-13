@@ -880,35 +880,31 @@ const $=id=>document.getElementById(id);
    Browser resolves relative paths against page URL.
 ══════════════════════════════════════════════════════════ */
 /* ══════════════════════════════════════════════════════════
-   MEDIA SESSION — OS notification bar artwork (STABLE)
+   MEDIA SESSION — Full Rectangular Background Fix
    ══════════════════════════════════════════════════════════ */
 function updateMediaSession(title, artist) {
   if (!('mediaSession' in navigator)) return;
 
-  // Tumhara working Cloudinary Direct Link (No cache buster to avoid breaking)
-  const artSrc = 'https://res.cloudinary.com/dixl7wxca/image/upload/banner_dyjhrf.jpg';
-
-  const artwork = [
-    // Sabse upar 1280x720 sizes dene se Android ise rectangular space mein stretch karne ki koshish karta hai
-    { src: artSrc, sizes: '1280x720', type: 'image/jpeg' }, 
-    { src: artSrc, sizes: '512x512', type: 'image/jpeg' },
-    { src: artSrc, sizes: '192x192', type: 'image/jpeg' }
-  ];
+  const finalImg = 'https://res.cloudinary.com/dixl7wxca/image/upload/cover_fx6jn6.jpg';
 
   try {
     navigator.mediaSession.metadata = new MediaMetadata({
       title: title || '~ zeroxarya <3',
       artist: artist || 'zeroxarya',
       album: 'ZeroX Visuals',
-      artwork: artwork
+      artwork: [
+        // Sabse important: Bada size pehle rakho taaki OS cover mode on kare
+        { src: finalImg, sizes: '1280x720', type: 'image/jpeg' }, 
+        { src: finalImg, sizes: '512x512', type: 'image/jpeg' },
+        { src: finalImg, sizes: '192x192', type: 'image/jpeg' }
+      ]
     });
     
-    // Playback state ko "playing" force karna zaroori hai display ke liye
     navigator.mediaSession.playbackState = "playing";
   } catch (e) {
-    console.error("MediaSession Error:", e);
+    console.error("MediaSession Layout Error:", e);
   }
-}
+   }
 /* --- Har play event par metadata force refresh --- */
 document.addEventListener('play', (e) => {
   if (e.target.tagName === 'AUDIO' || e.target.tagName === 'VIDEO') {
