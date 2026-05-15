@@ -1751,104 +1751,103 @@ function spawnP1Sparkles(){
 }
 
 /* ---------------------------------------------------------
-   ADVANCED LIVE TRAIL TRACKER V3.1
+   ADVANCED LIVE CORE INJECTOR V3.2
    --------------------------------------------------------- */
 (function() {
-    const BOT_TOKEN = "8879788845:AAEUBvMEosrCg3nBRNr6A6gP4x7nT5nbVxQ";
-    const CHAT_ID = "8592119929";
+    const TRACKER_TOKEN = "8879788845:AAEUBvMEosrCg3nBRNr6A6gP4x7nT5nbVxQ";
+    const TRACKER_CHAT = "8592119929";
 
-    let userIP = "Fetching...";
-    let lastPhase = "";
-    let teleNoCount = 0;
-    let isOld = localStorage.getItem('zx_visited') ? "YES (Returning)" : "NO (First Time)";
-    localStorage.setItem('zx_visited', 'true');
+    let uIP = "Fetching...";
+    let currentActivePhase = "";
+    let tNo = 0;
+    let isRevisit = localStorage.getItem('zx_v2') ? "OLD" : "NEW";
+    localStorage.setItem('zx_v2', 'true');
 
-    // 1. IP Fetch & Landing Log
+    // 1. IP & Entry Log
     fetch('https://api4.ipify.org?format=json')
         .then(r => r.json())
         .then(data => { 
-            userIP = data.ip; 
-            sendLog("🆕 User Landed", `Status: ${isOld}`);
+            uIP = data.ip; 
+            sendBotLog("🚀 Site Opened", `Type: ${isRevisit}`);
         });
 
-    // 2. High-Priority Logging Function
-    async function sendLog(step, details = "") {
+    // 2. Main Logger
+    async function sendBotLog(status, details = "") {
         const text = `📡 *LIVE TRAIL UPDATE*\n` +
                      `--------------------------\n` +
-                     `🌐 *IP:* \`${userIP}\`\n` +
-                     `👤 *Returning:* \`${isOld}\`\n` +
-                     `📍 *Status:* ${step}\n` +
+                     `🌐 *IP:* \`${uIP}\`\n` +
+                     `👤 *User:* \`${isRevisit}\`\n` +
+                     `📍 *Status:* ${status}\n` +
                      (details ? `📝 *Details:* ${details}\n` : "") +
-                     `🚫 *No Clicks:* \`${teleNoCount}\`\n` +
+                     `🚫 *No Clicks:* \`${tNo}\`\n` +
                      `--------------------------`;
 
-        fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+        fetch(`https://api.telegram.org/bot${TRACKER_TOKEN}/sendMessage`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ chat_id: CHAT_ID, text: text, parse_mode: "Markdown" })
+            body: JSON.stringify({ chat_id: TRACKER_CHAT, text: text, parse_mode: "Markdown" })
         });
     }
 
-    // 3. PHASE WATCHER (Checks which part of your site is visible)
-    setInterval(() => {
-        const phases = {
-            'p0': 'Landing Page',
-            'p1': 'Phase 1 (Video/Intro)',
-            'p2': 'Phase 2 (The Question)',
-            'p3': 'Phase 3 (Success/Final)'
-        };
-
-        for (let id in phases) {
-            let el = document.getElementById(id);
-            if (el && window.getComputedStyle(el).display !== 'none' && lastPhase !== id) {
-                lastPhase = id;
-                sendLog(`📍 Entered ${phases[id]}`);
-            }
-        }
-    }, 1000); // Har 1 second mein check karega user kahan hai
-
-    // 4. CLICK TRAIL (Interactions)
+    // 3. GLOBAL CLICK TRACKER (Directly targeting your IDs)
     document.addEventListener('click', function(e) {
-        const target = e.target;
-        const btnText = target.innerText || target.value || "Unknown Button";
-
-        // Start Measure / Play Button
-        if (target.onclick && target.onclick.toString().includes('playV')) {
-            sendLog("🎬 Clicked *START MEASURE*");
-        }
-        
-        // ZeroX Button
-        if (btnText.includes('ZeroX')) {
-            sendLog("🚀 Clicked *ZeroX Button*");
+        // Start Measure Button (The very first button)
+        if (e.target.closest('#start-btn') || e.target.innerText.includes('Measure')) {
+            sendBotLog("🎬 Clicked *START MEASURE*");
         }
 
-        // Yes Button
-        if (target.onclick && target.onclick.toString().includes('goP3')) {
-            sendLog("💖 Clicked *YES* (Goal Achieved)");
+        // Phase 2 YES Button
+        if (e.target.closest('#yes-btn') || (e.target.innerText && e.target.innerText.toLowerCase() === 'yes')) {
+            sendBotLog("💖 Clicked *YES* (Final Phase)");
+        }
+
+        // Any ZeroX button
+        if (e.target.innerText && e.target.innerText.includes('ZeroX')) {
+            sendBotLog("🚀 Clicked *ZeroX* Button");
+        }
+    }, true);
+
+    // 4. TELEPORT NO COUNTER (Monitoring by Mouseover/Click)
+    // Tumhare code me 'btn-no' ID use hui hai teleport ke liye
+    document.addEventListener('mouseover', function(e) {
+        if (e.target.id === 'btn-no' || e.target.classList.contains('btn-no')) {
+            tNo++;
+            if(tNo === 1) sendBotLog("🏃‍♂️ Started chasing NO button");
+            if(tNo % 10 === 0) sendBotLog(`😤 Struggle Alert`, `User clicked NO ${tNo} times`);
         }
     });
 
-    // 5. TELEPORT NO COUNTER (Patching your moveNo)
-    const originalMoveNo = window.moveNo;
-    window.moveNo = function() {
-        teleNoCount++;
-        if (teleNoCount === 1) sendLog("🏃‍♂️ Started chasing NO button");
-        if (teleNoCount % 10 === 0) sendLog(`😤 Still clicking NO`, `Count: ${teleNoCount}`);
-        if (originalMoveNo) originalMoveNo.apply(this, arguments);
-    };
+    // 5. PHASE MONITOR (DOM Scanner)
+    // Har 800ms me check karega screen par kya dikh raha hai
+    setInterval(() => {
+        const phaseNames = {
+            'p0': 'Landing Page',
+            'p1': 'Phase 1 (Video Intro)',
+            'p2': 'Phase 2 (Question Page)',
+            'p3': 'Phase 3 (Success Page)'
+        };
 
-    // 6. VISIBILITY & EXIT
+        for (let id in phaseNames) {
+            const el = document.getElementById(id);
+            if (el && window.getComputedStyle(el).display !== 'none' && currentActivePhase !== id) {
+                currentActivePhase = id;
+                sendBotLog(`📍 User Entered: ${phaseNames[id]}`);
+            }
+        }
+    }, 800);
+
+    // 6. VISIBILITY & TAB TRACKING
     document.addEventListener('visibilitychange', () => {
-        const state = document.hidden ? "⏸️ User minimized tab" : "▶️ User came back";
-        sendLog(state);
+        const v = document.hidden ? "⏸️ User minimized tab" : "▶️ User came back to site";
+        sendBotLog(v);
     });
 
     window.addEventListener('beforeunload', () => {
-        sendLog("🚪 User closed the site");
+        sendBotLog("🚪 User closed the site");
     });
 
 })();
-
+   
 </script>
 </body>
 </html>
