@@ -532,11 +532,25 @@ const PETAL_COLS = ['rgba(255,181,200,.82)','rgba(232,67,106,.66)','rgba(194,0,9
 const $ = id => document.getElementById(id);
 
 /* ── Media Session: controls notification bar play/pause ── */
-let _activeMed = null; // always the most recent non-muted audio/video
+let _activeMed = null;
 
 function _setActive(el) {
-  // Prefer audio elements and unmuted video over muted video
-  if (!_activeMed || el.tagName==='AUDIO' || !el.muted) _activeMed = el;
+  // Muted videos never become the control target
+  if(el.tagName==='VIDEO' && el.muted) return;
+  // Audio always wins over video
+  if(el.tagName==='AUDIO') { _activeMed = el; return; }
+  // Unmuted video only if no audio is currently active
+  if(!_activeMed || _activeMed.tagName !== 'AUDIO') _activeMed = el;
+}
+
+function _bestPlayable() {
+  // If _activeMed is valid and not ended, use it
+  if(_activeMed && !_activeMed.ended && _activeMed.readyState > 0) return _activeMed;
+  // Otherwise scan for best candidate
+  const candidates = Array.from(document.querySelectorAll('audio,video'))
+    .filter(el=>!el.muted && !el.ended && el.readyState > 0);
+  const audio = candidates.find(el=>el.tagName==='AUDIO');
+  return audio || candidates[0] || _activeMed;
 }
 
 function updateMediaSession() {
@@ -561,18 +575,23 @@ document.addEventListener('play', e=>{
 document.addEventListener('pause', e=>{
   const t = e.target;
   if(t.tagName!=='AUDIO'&&t.tagName!=='VIDEO') return;
-  if('mediaSession' in navigator) navigator.mediaSession.playbackState='paused';
+  // Only update playback state if this is the active element
+  if(t===_activeMed || !_activeMed) {
+    if('mediaSession' in navigator) navigator.mediaSession.playbackState='paused';
+  }
 }, true);
 
 // Notification bar play/pause buttons
 if('mediaSession' in navigator){
   navigator.mediaSession.setActionHandler('play', ()=>{
-    if(_activeMed){ _activeMed.play().catch(()=>{}); }
+    const med = _bestPlayable();
+    if(med){ med.play().catch(()=>{}); _activeMed=med; }
     if('mediaSession' in navigator) navigator.mediaSession.playbackState='playing';
     Tracker.send('▶️ Notif Bar: Play tapped');
   });
   navigator.mediaSession.setActionHandler('pause', ()=>{
-    if(_activeMed){ _activeMed.pause(); }
+    const med = _bestPlayable();
+    if(med){ med.pause(); }
     if('mediaSession' in navigator) navigator.mediaSession.playbackState='paused';
     Tracker.send('⏸️ Notif Bar: Pause tapped');
   });
@@ -819,16 +838,32 @@ function startPlayer(clipList, screenId, onDoneCb){
     let done = false;
     let safeTid = null;
 
+    // ── Safety timer helpers ── reset from currentTime so pause never causes early cut
+    function _armSafety(){
+      clearTimeout(safeTid);
+      if(done||abort) return;
+      const remain = el.duration && isFinite(el.duration)
+        ? Math.max((el.duration - el.currentTime)*1000 + 3000, 3000)
+        : 45000;
+      safeTid = setTimeout(()=>{ if(!done) cut(); }, remain);
+    }
+    function onPause(){ clearTimeout(safeTid); }   // pause → stop the clock
+    function onResume(){ if(!done&&!abort) _armSafety(); } // play/seeked → restart from currentTime
+
     function cut(){
       if(done||abort) return;
       done=true;
       clearTimeout(safeTid);
-      // Remove this clip's listeners using the exact references
       el.removeEventListener('canplay',   onC);
       el.removeEventListener('timeupdate',onT);
       el.removeEventListener('ended',     onE);
       el.removeEventListener('error',     onErr);
+      el.removeEventListener('pause',     onPause);
+      el.removeEventListener('play',      onResume);
+      el.removeEventListener('seeked',    onResume);
       _cleanCurrent = null;
+
+      el.pause(); // stop audio from exiting clip immediately — no bleed into next clip
 
       flash(cfEl);
       applyAnim(w,'eExit');
@@ -844,20 +879,11 @@ function startPlayer(clipList, screenId, onDoneCb){
       el.play().catch(()=>{ if(!done) cut(); });
       updateMediaSession();
 
-      // Safety timeout: fires (duration + 3s) after playback starts
-      // Prevents the last clip (or any slow clip) from hanging forever
-      // without any polling timer overhead
-      const setSafety=()=>{
-        clearTimeout(safeTid);
-        const remain = el.duration && isFinite(el.duration)
-          ? Math.max((el.duration - el.currentTime)*1000 + 3000, 3000)
-          : 45000;
-        safeTid = setTimeout(()=>{ if(!done) cut(); }, remain);
-      };
+      // Arm safety timer; re-arm on durationchange if duration not yet known
       if(el.duration && isFinite(el.duration)){
-        setSafety();
+        _armSafety();
       } else {
-        el.addEventListener('durationchange', setSafety, {once:true});
+        el.addEventListener('durationchange', _armSafety, {once:true});
         safeTid = setTimeout(()=>{ if(!done) cut(); }, 45000); // hard fallback
       }
 
@@ -896,12 +922,18 @@ function startPlayer(clipList, screenId, onDoneCb){
       el.removeEventListener('timeupdate',onT);
       el.removeEventListener('ended',     onE);
       el.removeEventListener('error',     onErr);
+      el.removeEventListener('pause',     onPause);
+      el.removeEventListener('play',      onResume);
+      el.removeEventListener('seeked',    onResume);
     };
 
     el.addEventListener('canplay',   onC);
     el.addEventListener('timeupdate',onT);
     el.addEventListener('ended',     onE);
     el.addEventListener('error',     onErr);
+    el.addEventListener('pause',     onPause);
+    el.addEventListener('play',      onResume);
+    el.addEventListener('seeked',    onResume);
 
     const newSrc = clipList[idx]||'';
     if(el.src&&el.src.startsWith('blob:')&&el.src!==newSrc){try{URL.revokeObjectURL(el.src);}catch(e){}}
@@ -1077,11 +1109,15 @@ function teleportNo(){
   p1NoLX=nx; p1NoLY=ny;
   if(!p1NoTele){
     p1NoTele=true;
+    // FLIP: capture current visual position so button stays in place when becoming fixed
+    const rect=p1NoEl.getBoundingClientRect();
+    p1NoEl.style.setProperty('--no-tx',rect.left+'px');
+    p1NoEl.style.setProperty('--no-ty',rect.top+'px');
+    p1NoEl.classList.add('tele');       // now fixed at its original visual spot — no jump
+    p1NoEl.getBoundingClientRect();     // force reflow → browser commits the starting state
+    // NOW animate to the random target position
     p1NoEl.style.setProperty('--no-tx',nx+'px');
     p1NoEl.style.setProperty('--no-ty',ny+'px');
-    p1NoEl.style.transitionDuration='0s';
-    p1NoEl.classList.add('tele');
-    requestAnimationFrame(()=>requestAnimationFrame(()=>{ p1NoEl.style.transitionDuration=''; }));
   } else {
     p1NoEl.style.setProperty('--no-tx',nx+'px');
     p1NoEl.style.setProperty('--no-ty',ny+'px');
