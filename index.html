@@ -136,7 +136,10 @@ body.p1-active #p02-petals,body.p1-active #p02-sparkles{display:none;}
 @keyframes glowScene3{0%{filter:drop-shadow(0 0 6px #6E0030aa) drop-shadow(0 0 10px #C2005F55);}30%{filter:drop-shadow(0 0 12px #6E0030dd) drop-shadow(0 0 8px #C2005Fbb) drop-shadow(0 0 4px #E8436A33);}55%{filter:drop-shadow(0 0 16px #C2005Fee) drop-shadow(0 0 10px #6E0030cc) drop-shadow(0 0 6px #E8436A66);}70%{filter:drop-shadow(0 0 10px #E8436A99) drop-shadow(0 0 14px #C2005F88) drop-shadow(0 0 5px #6E003077);}85%{filter:drop-shadow(0 0 8px #6E0030cc) drop-shadow(0 0 6px #C2005F88);}100%{filter:drop-shadow(0 0 6px #6E0030aa) drop-shadow(0 0 10px #C2005F55);}}
 #p1-gif.glow-scene4{animation:glowScene4 1.5s ease-in-out infinite;}
 @keyframes glowScene4{0%{filter:drop-shadow(0 0 6px #E8436Acc) drop-shadow(0 0 10px #C2005F88);}15%{filter:drop-shadow(0 0 14px #FF6B9D) drop-shadow(0 0 8px #E8436Aee) drop-shadow(0 0 4px #FFB5C877);}35%{filter:drop-shadow(0 0 10px #C2005Fee) drop-shadow(0 0 16px #E8436Acc) drop-shadow(0 0 6px #FF6B9D88);}55%{filter:drop-shadow(0 0 16px #FF6B9Dee) drop-shadow(0 0 10px #C2005Fcc) drop-shadow(0 0 5px #E8436A99);}75%{filter:drop-shadow(0 0 8px #E8436Aee) drop-shadow(0 0 12px #FF6B9Daa) drop-shadow(0 0 4px #C2005F66);}100%{filter:drop-shadow(0 0 6px #E8436Acc) drop-shadow(0 0 10px #C2005F88);}}
-.p1-question{display:flex;flex-direction:column;align-items:center;gap:10px;padding:0 12px;text-align:center;}
+.p1-question{display:flex;flex-direction:column;align-items:center;gap:10px;padding:0 12px;text-align:center;user-select:none;-webkit-user-select:none;pointer-events:none;}
+.p1-q-main,.p1-q-sub{user-select:none;-webkit-user-select:none;pointer-events:none;}
+.p1-sdots{pointer-events:none;}
+.p1-cap,.p1-stitle,.p1-ssub,.p1-div{user-select:none;-webkit-user-select:none;pointer-events:none;}
 .p1-q-main{font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;font-weight:600;font-size:clamp(22px,6.5vw,32px);line-height:1.28;color:var(--champagne);text-shadow:0 0 10px #FFE8EF,0 0 28px #FFB5C8cc,0 0 55px #E8436A77,0 0 90px #C2005F44;letter-spacing:.02em;}
 .p1-q-sub{font-family:'Dancing Script',cursive;font-weight:700;font-size:clamp(14px,4vw,19px);line-height:1.3;color:var(--blush);text-shadow:0 0 8px #FFB5C8ee,0 0 20px #E8436Aaa,0 0 42px #C2005F66;letter-spacing:.01em;opacity:.92;}
 .p1-sdots{display:flex;gap:7px;align-items:center;}
@@ -544,13 +547,20 @@ function _setActive(el) {
 }
 
 function _bestPlayable() {
-  // If _activeMed is valid and not ended, use it
-  if(_activeMed && !_activeMed.ended && _activeMed.readyState > 0) return _activeMed;
-  // Otherwise scan for best candidate
-  const candidates = Array.from(document.querySelectorAll('audio,video'))
+  // 1. Prefer _activeMed if it is currently playing
+  if(_activeMed && !_activeMed.paused && !_activeMed.ended && _activeMed.readyState > 0) return _activeMed;
+  // 2. Scan for any actually-playing unmuted media
+  const all = Array.from(document.querySelectorAll('audio,video'))
     .filter(el=>!el.muted && !el.ended && el.readyState > 0);
-  const audio = candidates.find(el=>el.tagName==='AUDIO');
-  return audio || candidates[0] || _activeMed;
+  const playingAudio = all.find(el=>el.tagName==='AUDIO' && !el.paused);
+  const playingVideo = all.find(el=>el.tagName==='VIDEO' && !el.paused);
+  if(playingAudio) return playingAudio;
+  if(playingVideo) return playingVideo;
+  // 3. Nothing playing — return _activeMed so tapping play resumes IT, not the wrong audio
+  if(_activeMed && !_activeMed.ended && _activeMed.readyState > 0) return _activeMed;
+  // 4. Last resort: any available audio
+  const anyAudio = all.find(el=>el.tagName==='AUDIO');
+  return anyAudio || all[0] || _activeMed;
 }
 
 function updateMediaSession() {
@@ -643,7 +653,7 @@ function showP1(id){
       p1v2.src=P1_V2; p1v2.muted=true; p1v2.currentTime=0; p1v2.load();
       p1v2.addEventListener('canplay',function cv2(){p1v2.removeEventListener('canplay',cv2);vf2.style.opacity='1';},{once:true});
       setTimeout(()=>{vf2.style.opacity='1';},900);
-      p1v2.play().then(()=>{p1v2.muted=false;p1v2.volume=1.0;}).catch(()=>{});
+      p1v2.play().then(()=>{p1v2.muted=false;p1v2.volume=1.0; _activeMed=p1v2; updateMediaSession();}).catch(()=>{});
       showP1('s-p1-v2');
       Tracker.send('🎬 Play: Success Video 2');
     }, SUCCESS_DELAY_MS);
@@ -877,7 +887,8 @@ function startPlayer(clipList, screenId, onDoneCb){
       w.style.opacity='';
       applyAnim(w, ENTRY_CLS[idx%ENTRY_CLS.length]);
       el.play().catch(()=>{ if(!done) cut(); });
-      updateMediaSession();
+      // updateMediaSession() is NOT called here for muted video clips.
+      // It fires via the global 'play' event only when unmuted audio/video plays.
 
       // Arm safety timer; re-arm on durationchange if duration not yet known
       if(el.duration && isFinite(el.duration)){
@@ -1062,6 +1073,8 @@ function handleNo(){
     p1v1.addEventListener('canplay',function ov1(){p1v1.removeEventListener('canplay',ov1);vf1.style.opacity='1';},{once:true});
     setTimeout(()=>{vf1.style.opacity='1';},900);
     p1v1.play().catch(()=>{});
+    _activeMed = p1v1;
+    updateMediaSession();
     showP1('s-p1-v1'); return;
   }
   if(p1Step<P1_TEXTS.length-1){ loadScene(p1Step+1); Tracker.send(`❌ NO → Q${p1Step+1}`); }
@@ -1115,9 +1128,11 @@ function teleportNo(){
     p1NoEl.style.setProperty('--no-ty',rect.top+'px');
     p1NoEl.classList.add('tele');       // now fixed at its original visual spot — no jump
     p1NoEl.getBoundingClientRect();     // force reflow → browser commits the starting state
-    // NOW animate to the random target position
-    p1NoEl.style.setProperty('--no-tx',nx+'px');
-    p1NoEl.style.setProperty('--no-ty',ny+'px');
+    // Wait one animation frame so the browser paints the start position before animating
+    requestAnimationFrame(()=>{
+      p1NoEl.style.setProperty('--no-tx',nx+'px');
+      p1NoEl.style.setProperty('--no-ty',ny+'px');
+    });
   } else {
     p1NoEl.style.setProperty('--no-tx',nx+'px');
     p1NoEl.style.setProperty('--no-ty',ny+'px');
@@ -1208,14 +1223,17 @@ function startPhase2(){
     v2El.style.transition='';v2El.style.opacity='';
     document.body.classList.remove('p1-active');
     spawnDecos(decoLayer2);
-    const pm2=$('p2Music');pm2.pause();pm2.currentTime=0;pm2.loop=true;pm2.volume=0;
+    const pm2=$('p2Music');pm2.pause();pm2.currentTime=0;pm2.loop=true;
     // Only reload if _preloadPhase2 hasn't already loaded it
     if(!$('p2MusicSrc').src||$('p2MusicSrc').src===window.location.href){
       $('p2MusicSrc').src=P2_M4A;pm2.load();
     }
+    // Start p2Music immediately so notification bar has audio to control throughout Phase-2
+    pm2.volume=0.85;
+    pm2.play().catch(()=>{});
+    // _activeMed will be updated via global 'play' event → _setActive(pm2)
     const rv=$('outroVid');rv.loop=true;rv.muted=true;
     if(!rv.src||rv.src===window.location.href){ rv.preload='auto';rv.src=OUTRO_VID;rv.load(); }
-    updateMediaSession();
     startPlayer(P2,'s-player2',showRegardsPage);
   },320);
 }
