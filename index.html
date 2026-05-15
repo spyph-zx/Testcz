@@ -916,8 +916,9 @@ function startPlayer(clipList, screenId, onDoneCb){
       // Music fade-in cue on last clip
       if(idx===clipList.length-1 && !musicFired && el.currentTime>=el.duration-2.5){
         musicFired=true;
+        // Phase-0 only: fade p1Music in near the end of last clip
         if(!isP2){ const pm=$('p1Music');pm.loop=true;pm.volume=0.75;pm.play().catch(()=>{}); }
-        else{ const pm2=$('p2Music');if(pm2.paused){pm2.loop=true;pm2.volume=0.85;pm2.play().catch(()=>{});} }
+        // Phase-2: p2Music is started inside showRegardsPage() after last clip ends — not here
       }
       // Near-end cut
       if(el.currentTime >= el.duration-TRANS_BEF) cut();
@@ -1223,15 +1224,12 @@ function startPhase2(){
     v2El.style.transition='';v2El.style.opacity='';
     document.body.classList.remove('p1-active');
     spawnDecos(decoLayer2);
-    const pm2=$('p2Music');pm2.pause();pm2.currentTime=0;pm2.loop=true;
+    const pm2=$('p2Music');pm2.pause();pm2.currentTime=0;pm2.loop=true;pm2.volume=0;
     // Only reload if _preloadPhase2 hasn't already loaded it
     if(!$('p2MusicSrc').src||$('p2MusicSrc').src===window.location.href){
       $('p2MusicSrc').src=P2_M4A;pm2.load();
     }
-    // Start p2Music immediately so notification bar has audio to control throughout Phase-2
-    pm2.volume=0.85;
-    pm2.play().catch(()=>{});
-    // _activeMed will be updated via global 'play' event → _setActive(pm2)
+    // p2Music will auto-start at Phase-2's 5th (last) clip near-end via the music cue in startPlayer
     const rv=$('outroVid');rv.loop=true;rv.muted=true;
     if(!rv.src||rv.src===window.location.href){ rv.preload='auto';rv.src=OUTRO_VID;rv.load(); }
     startPlayer(P2,'s-player2',showRegardsPage);
