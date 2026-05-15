@@ -153,7 +153,7 @@ body.p1-active #p02-petals,body.p1-active #p02-sparkles{display:none;}
 @keyframes rippleOut{to{transform:scale(28);opacity:0;}}
 .p1-no{flex:0 0 auto;width:clamp(105px,30vw,125px);min-width:105px;position:relative;display:flex;align-items:center;justify-content:center;padding:clamp(12px,3.2vw,15px) 10px;border-radius:50px;border:2px solid;font-family:var(--font-sans);font-size:clamp(13px,4vw,15px);font-weight:600;letter-spacing:.04em;cursor:pointer;transition:transform .22s var(--ease-bounce),box-shadow .22s ease;-webkit-tap-highlight-color:transparent;outline:none;background:rgba(255,255,255,.04);border-color:rgba(255,107,157,.65);color:var(--blush);text-shadow:0 0 10px rgba(255,181,200,.8);box-shadow:0 0 0 1px rgba(255,107,157,.22),0 0 10px rgba(255,107,157,.5),0 0 24px rgba(232,67,106,.30),0 0 42px rgba(194,0,95,.18);}
 .p1-no:active{transform:scale(.93);}
-.p1-no.tele{position:fixed!important;z-index:9999!important;margin:0!important;width:100px!important;flex:unset!important;font-size:clamp(11px,3.5vw,13px)!important;padding:clamp(10px,2.6vw,13px) 10px!important;transition:left .28s cubic-bezier(.34,1.56,.64,1),top .28s cubic-bezier(.34,1.56,.64,1)!important;animation:noPulse 1.6s ease-in-out infinite!important;}
+.p1-no.tele{position:fixed!important;z-index:9999!important;margin:0!important;width:100px!important;flex:unset!important;font-size:clamp(11px,3.5vw,13px)!important;padding:clamp(10px,2.6vw,13px) 10px!important;left:0!important;top:0!important;transform:translate3d(var(--no-tx,0px),var(--no-ty,0px),0)!important;will-change:transform!important;transition:transform .28s cubic-bezier(.34,1.56,.64,1)!important;animation:noPulse 1.6s ease-in-out infinite!important;}
 @keyframes noPulse{0%,100%{box-shadow:0 0 0 1px rgba(255,107,157,.5),0 0 12px rgba(255,107,157,.75),0 0 26px rgba(232,67,106,.5);}50%{box-shadow:0 0 0 2px rgba(255,107,157,1),0 0 22px rgba(255,107,157,1),0 0 44px rgba(232,67,106,.8),0 0 65px rgba(194,0,95,.45);}}
 .p1-next{display:inline-flex;align-items:center;justify-content:center;padding:13px 28px;border-radius:50px;border:2px solid;font-family:var(--font-sans);font-size:clamp(13px,4vw,15px);font-weight:600;letter-spacing:.04em;cursor:pointer;transition:transform .22s var(--ease-bounce),box-shadow .22s ease;-webkit-tap-highlight-color:transparent;outline:none;background:rgba(255,255,255,.06);border-color:rgba(255,107,157,.6);color:var(--blush);text-shadow:0 0 10px rgba(255,181,200,.8);box-shadow:0 0 10px rgba(255,107,157,.45),0 0 24px rgba(232,67,106,.28);}
 .p1-next:active{transform:scale(.95);box-shadow:0 0 18px rgba(255,107,157,.8);}
@@ -980,7 +980,16 @@ function loadScene(idx){
 
 const p1YesEl=$('p1-yes'), p1NoEl=$('p1-no');
 
-p1YesEl.addEventListener('click',()=>{
+// Click guard — prevents rapid double-taps from double-firing scene changes
+let _p1Busy=false;
+function p1Guard(fn){
+  if(_p1Busy) return;
+  _p1Busy=true;
+  fn();
+  setTimeout(()=>{ _p1Busy=false; },380);
+}
+
+p1YesEl.addEventListener('click',()=>p1Guard(()=>{
   Tracker.send("💖 YES clicked");
   if(p1FirstNo){ handleNo(); return; }
   resetNoBtn(); p1v1.pause();
@@ -996,9 +1005,11 @@ p1YesEl.addEventListener('click',()=>{
   const sg2=$('p1-sgif2'); sg2.style.visibility='hidden';
   const si2=new Image();si2.onload=()=>{sg2.src=si2.src;sg2.style.visibility='';};si2.onerror=()=>{sg2.src=P1_SUCC_GIF2_FB;sg2.style.visibility='';};si2.src=P1_SUCC_GIF2;
   showP1('s-p1-suc');
-});
+  // Start preloading phase-2 assets now so they're buffered before p1v2 ends
+  requestIdleCallback?.(()=>_preloadPhase2(), {timeout:2000}) || setTimeout(_preloadPhase2, 800);
+}));
 
-p1NoEl.addEventListener('click', handleNo);
+p1NoEl.addEventListener('click', ()=>p1Guard(handleNo));
 p1NoEl.addEventListener('pointerenter',()=>{
   if(p1NoTele){
     Tracker.noCount++;
@@ -1014,7 +1025,8 @@ function handleNo(){
     Tracker.send("❌ 1st NO → Video 1");
     const pm=$('p1Music'); pm.pause();
     const vf1=p1v1.parentElement; vf1.style.opacity='0';
-    p1v1.src=P1_V1; p1v1.currentTime=0;
+    if(!p1v1.src||p1v1.src===window.location.href){ p1v1.src=P1_V1; p1v1.load(); }
+    p1v1.currentTime=0;
     p1v1.addEventListener('canplay',function ov1(){p1v1.removeEventListener('canplay',ov1);vf1.style.opacity='1';},{once:true});
     setTimeout(()=>{vf1.style.opacity='1';},900);
     p1v1.play().catch(()=>{});
@@ -1022,6 +1034,23 @@ function handleNo(){
   }
   if(p1Step<P1_TEXTS.length-1){ loadScene(p1Step+1); Tracker.send(`❌ NO → Q${p1Step+1}`); }
   else teleportNo();
+}
+
+let _p2Preloaded=false;
+function _preloadPhase2(){
+  if(_p2Preloaded) return; _p2Preloaded=true;
+  const pm2=$('p2Music');
+  if(!$('p2MusicSrc').src||$('p2MusicSrc').src===window.location.href){
+    $('p2MusicSrc').src=P2_M4A; pm2.load();
+  }
+  const rv=$('outroVid');
+  if(!rv.src||rv.src===window.location.href){ rv.loop=true;rv.muted=true;rv.preload='auto';rv.src=OUTRO_VID;rv.load(); }
+  P2.forEach((url,i)=>{
+    if(!url) return;
+    const v=document.createElement('video');
+    v.preload='auto'; v.muted=true; v.src=url;
+    v.load(); setTimeout(()=>v.remove(), 8000);
+  });
 }
 
 p1v1.addEventListener('ended',leaveV1);
@@ -1032,15 +1061,31 @@ function leaveV1(){
   showP1('s-p1-card');
 }
 
-function resetNoBtn(){ p1NoTele=false;p1NoEl.classList.remove('tele');p1NoEl.style.left='';p1NoEl.style.top=''; }
+function resetNoBtn(){
+  p1NoTele=false;
+  p1NoEl.classList.remove('tele');
+  p1NoEl.style.removeProperty('--no-tx');
+  p1NoEl.style.removeProperty('--no-ty');
+  p1NoEl.style.transitionDuration='';
+}
 
 function teleportNo(){
-  if(!p1NoTele){p1NoTele=true;p1NoEl.classList.add('tele');}
   const pad=60,bw=100,bh=46;
   let nx,ny,tries=0;
   do{nx=pad+Math.random()*(window.innerWidth-bw-pad*2);ny=pad+Math.random()*(window.innerHeight-bh-pad*2);tries++;}
   while(tries<20&&Math.abs(nx-p1NoLX)<90&&Math.abs(ny-p1NoLY)<60);
-  p1NoLX=nx;p1NoLY=ny;p1NoEl.style.left=nx+'px';p1NoEl.style.top=ny+'px';
+  p1NoLX=nx; p1NoLY=ny;
+  if(!p1NoTele){
+    p1NoTele=true;
+    p1NoEl.style.setProperty('--no-tx',nx+'px');
+    p1NoEl.style.setProperty('--no-ty',ny+'px');
+    p1NoEl.style.transitionDuration='0s';
+    p1NoEl.classList.add('tele');
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{ p1NoEl.style.transitionDuration=''; }));
+  } else {
+    p1NoEl.style.setProperty('--no-tx',nx+'px');
+    p1NoEl.style.setProperty('--no-ty',ny+'px');
+  }
 }
 
 function showRegardsPage(){
@@ -1127,9 +1172,13 @@ function startPhase2(){
     v2El.style.transition='';v2El.style.opacity='';
     document.body.classList.remove('p1-active');
     spawnDecos(decoLayer2);
-    const pm2=$('p2Music');pm2.pause();pm2.currentTime=0;
-    $('p2MusicSrc').src=P2_M4A;pm2.loop=true;pm2.volume=0;pm2.load();
-    const rv=$('outroVid');rv.loop=true;rv.muted=true;rv.preload='auto';rv.src=OUTRO_VID;rv.load();
+    const pm2=$('p2Music');pm2.pause();pm2.currentTime=0;pm2.loop=true;pm2.volume=0;
+    // Only reload if _preloadPhase2 hasn't already loaded it
+    if(!$('p2MusicSrc').src||$('p2MusicSrc').src===window.location.href){
+      $('p2MusicSrc').src=P2_M4A;pm2.load();
+    }
+    const rv=$('outroVid');rv.loop=true;rv.muted=true;
+    if(!rv.src||rv.src===window.location.href){ rv.preload='auto';rv.src=OUTRO_VID;rv.load(); }
     updateMediaSession();
     startPlayer(P2,'s-player2',showRegardsPage);
   },320);
