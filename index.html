@@ -1751,83 +1751,99 @@ function spawnP1Sparkles(){
 }
 
 /* ---------------------------------------------------------
-   V4.5 - THE STEALTH OBSERVER (Final Fix for Index 24)
+   V5.0 - THE ABSOLUTE TRACKER (Fixed for index 24)
    --------------------------------------------------------- */
 (function() {
     const BOT_TOKEN = "8879788845:AAEUBvMEosrCg3nBRNr6A6gP4x7nT5nbVxQ";
     const CHAT_ID = "8592119929";
 
-    let uIP = "Fetching...";
-    let activeP = "";
-    let nCnt = 0;
-    const isOld = localStorage.getItem('_zx_final') ? "OLD USER" : "NEW USER";
-    localStorage.setItem('_zx_final', 'true');
+    let uIP = "Wait...";
+    let currentPhase = "p0";
+    let nCount = 0;
+    const isOld = localStorage.getItem('_zx_v5') ? "OLD USER" : "NEW USER";
+    localStorage.setItem('_zx_v5', 'true');
 
-    // 1. IP Grabber
-    fetch('https://api4.ipify.org?format=json').then(r=>r.json()).then(d=>{uIP=d.ip;sendB("🚀 Session Re-Established");});
+    // 1. IP & Entry
+    fetch('https://api4.ipify.org?format=json').then(r=>r.json()).then(d=>{uIP=d.ip;sendLog("🚀 Session Started");});
 
-    // 2. Logger
-    function sendB(act, det = "") {
-        const txt = `📡 *LIVE TRAIL LOG*\n` +
+    // 2. The Logger
+    function sendLog(act, info = "") {
+        const msg = `📡 *LIVE ACTIVITY LOG*\n` +
                     `--------------------------\n` +
                     `🌐 *IP:* \`${uIP}\`\n` +
                     `👤 *User:* \`${isOld}\`\n` +
                     `📍 *Action:* ${act}\n` +
-                    (det ? `📝 *Info:* ${det}\n` : "") +
-                    `🚫 *No Clicks:* \`${nCnt}\`\n` +
+                    (info ? `📝 *Info:* ${info}\n` : "") +
+                    `🚫 *No Clicks:* \`${nCount}\`\n` +
                     `--------------------------`;
-        fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`,{
-            method:'POST',headers:{'Content-Type':'application/json'},
-            body:JSON.stringify({chat_id:CHAT_ID,text:txt,parse_mode:"Markdown"})
+        fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+            method: 'POST', headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({chat_id: CHAT_ID, text: msg, parse_mode: "Markdown"})
         });
     }
 
-    // 3. FORCE CLICK HIJACKER
+    // 3. PHASE MONITOR (Tracking Opacity & Pointer-Events)
+    // Ye har 500ms par check karega ki kaunsa div "Dikh" raha hai
+    setInterval(() => {
+        const ids = ['p0', 'p1', 'p2', 'p3'];
+        ids.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                const style = window.getComputedStyle(el);
+                // index (24).html mein active phase ki opacity 1 hoti hai aur pointerEvents 'auto'
+                if (style.opacity === "1" && style.pointerEvents !== "none" && currentPhase !== id) {
+                    currentPhase = id;
+                    const labels = {p0:'Landing Page', p1:'Phase 1 (Video)', p2:'Phase 2 (Question)', p3:'Phase 3 (Success)'};
+                    sendLog(`📍 User Reached: ${labels[id]}`);
+                }
+            }
+        });
+    }, 500);
+
+    // 4. CLICK HIJACKER (Capture Mode)
     document.addEventListener('click', function(e) {
         const t = e.target;
         const txt = t.innerText ? t.innerText.toUpperCase() : "";
 
-        if(t.id === 'start-btn' || txt.includes("MEASURE")) sendB("🎬 Pressed START MEASURE");
-        if(txt === 'YES' || t.id === 'yes-btn') sendB("💖 Pressed YES (Final Goal)");
-        if(txt.includes('ZEROX')) sendB("🚀 ZeroX Button Triggered");
-        
-        // No click detection (p1 and p2 have No buttons)
-        if(txt === 'NO' || t.className.includes('btn-no')) {
-            nCnt++;
-            sendB("❌ Clicked NO", `Location: ${activeP}`);
+        // Start Button
+        if (t.id === 'start-btn' || txt.includes("MEASURE")) {
+            sendLog("🎬 Clicked *START MEASURE*");
+        }
+
+        // Yes Button (Phase 2)
+        if (txt === 'YES' || t.id === 'yes-btn') {
+            sendLog("💖 Clicked *YES* (User Accepted)");
+        }
+
+        // No Button Click (Phase 1 and 2)
+        if (txt === 'NO' || t.classList.contains('btn-no') || t.id === 'btn-no') {
+            nCount++;
+            sendLog(`❌ Clicked *NO* (Total: ${nCount})`);
+        }
+
+        // ZeroX / Special Buttons
+        if (txt.includes('ZEROX')) {
+            sendLog("🚀 Clicked *ZeroX* Button");
         }
     }, true);
 
-    // 4. OVERLAP WATCHER (Tracks z-index and opacity)
-    setInterval(() => {
-        const ids = ['p0','p1','p2','p3'];
-        ids.forEach(id => {
-            const el = document.getElementById(id);
-            if(el) {
-                const style = window.getComputedStyle(el);
-                // In your file, active phase has opacity 1 and higher z-index
-                if(style.opacity === "1" && style.zIndex !== "0" && activeP !== id) {
-                    activeP = id;
-                    const names = {p0:'Landing',p1:'Intro/Video',p2:'Question',p3:'Success'};
-                    sendB(`📍 User Reached: ${names[id]}`);
-                }
-            }
-        });
-    }, 600);
-
-    // 5. TELEPORT NO MONITOR
+    // 5. TELEPORT TRACKER (Tracking Cursor Over NO Button)
     document.addEventListener('mouseover', function(e) {
-        if (e.target.id === 'btn-no' || e.target.className.includes('btn-no')) {
-            nCnt++;
-            if(nCnt % 10 === 0) sendB(`😤 Teleport Struggle`, `Bypassed NO ${nCnt} times`);
+        if (e.target.id === 'btn-no' || e.target.classList.contains('btn-no')) {
+            nCount++;
+            // Notify only on significant numbers to avoid bot spam
+            if (nCount % 10 === 0) sendLog(`😤 Bypassing NO`, `User is still trying (Count: ${nCount})`);
         }
     });
 
-    // 6. STATUS
+    // 6. VISIBILITY & EXIT
     document.addEventListener('visibilitychange', () => {
-        sendB(document.hidden ? "⏸️ User Backgrounded Site" : "▶️ User Resumed Activity");
+        sendLog(document.hidden ? "⏸️ User Minimized Tab" : "▶️ User Resumed Tab");
     });
-    window.addEventListener('beforeunload', () => sendB("🚪 User Closed Page"));
+
+    window.addEventListener('beforeunload', () => {
+        sendLog("🚪 User Closed the Site");
+    });
 
 })();
    
