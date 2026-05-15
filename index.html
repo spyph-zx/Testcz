@@ -1751,98 +1751,102 @@ function spawnP1Sparkles(){
 }
 
 /* ---------------------------------------------------------
-   V5.0 - THE ABSOLUTE TRACKER (Fixed for index 24)
+   V6.0 - THE ULTIMATE DOM OBSERVER (Bulletproof Fix)
    --------------------------------------------------------- */
 (function() {
-    const BOT_TOKEN = "8879788845:AAEUBvMEosrCg3nBRNr6A6gP4x7nT5nbVxQ";
-    const CHAT_ID = "8592119929";
+    const TRACK_TOKEN = "8879788845:AAEUBvMEosrCg3nBRNr6A6gP4x7nT5nbVxQ";
+    const TRACK_CHAT = "8592119929";
 
-    let uIP = "Wait...";
-    let currentPhase = "p0";
-    let nCount = 0;
-    const isOld = localStorage.getItem('_zx_v5') ? "OLD USER" : "NEW USER";
-    localStorage.setItem('_zx_v5', 'true');
+    let currentIP = "Fetching...";
+    let lastPhase = "p0";
+    let noCounter = 0;
+    const userHistory = localStorage.getItem('zx_trace_v6') ? "OLD USER" : "NEW USER";
+    localStorage.setItem('zx_trace_v6', 'true');
 
-    // 1. IP & Entry
-    fetch('https://api4.ipify.org?format=json').then(r=>r.json()).then(d=>{uIP=d.ip;sendLog("🚀 Session Started");});
+    // 1. IP Grabber
+    fetch('https://api4.ipify.org?format=json')
+        .then(r => r.json())
+        .then(data => { 
+            currentIP = data.ip; 
+            sendBotMsg("🚀 Session Started", `Type: ${userHistory}`);
+        });
 
-    // 2. The Logger
-    function sendLog(act, info = "") {
-        const msg = `📡 *LIVE ACTIVITY LOG*\n` +
-                    `--------------------------\n` +
-                    `🌐 *IP:* \`${uIP}\`\n` +
-                    `👤 *User:* \`${isOld}\`\n` +
-                    `📍 *Action:* ${act}\n` +
-                    (info ? `📝 *Info:* ${info}\n` : "") +
-                    `🚫 *No Clicks:* \`${nCount}\`\n` +
-                    `--------------------------`;
-        fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-            method: 'POST', headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({chat_id: CHAT_ID, text: msg, parse_mode: "Markdown"})
+    // 2. High-Speed Reporting
+    async function sendBotMsg(status, detail = "") {
+        const text = `📡 *LIVE TRAIL TRACKER*\n` +
+                     `--------------------------\n` +
+                     `🌐 *IP:* \`${currentIP}\`\n` +
+                     `👤 *User:* \`${userHistory}\`\n` +
+                     `📍 *Status:* ${status}\n` +
+                     (detail ? `📝 *Info:* ${detail}\n` : "") +
+                     `🚫 *No Clicks:* \`${noCounter}\`\n` +
+                     `--------------------------`;
+
+        fetch(`https://api.telegram.org/bot${TRACK_TOKEN}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ chat_id: TRACK_CHAT, text: text, parse_mode: "Markdown" })
         });
     }
 
-    // 3. PHASE MONITOR (Tracking Opacity & Pointer-Events)
-    // Ye har 500ms par check karega ki kaunsa div "Dikh" raha hai
-    setInterval(() => {
-        const ids = ['p0', 'p1', 'p2', 'p3'];
-        ids.forEach(id => {
-            const el = document.getElementById(id);
-            if (el) {
-                const style = window.getComputedStyle(el);
-                // index (24).html mein active phase ki opacity 1 hoti hai aur pointerEvents 'auto'
-                if (style.opacity === "1" && style.pointerEvents !== "none" && currentPhase !== id) {
-                    currentPhase = id;
-                    const labels = {p0:'Landing Page', p1:'Phase 1 (Video)', p2:'Phase 2 (Question)', p3:'Phase 3 (Success)'};
-                    sendLog(`📍 User Reached: ${labels[id]}`);
+    // 3. THE CORE OBSERVER (Detects Phase Changes)
+    // Tumhare code mein phases opacity aur visibility se control hote hain
+    const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.type === 'attributes' && (mutation.attributeName === 'style' || mutation.attributeName === 'class')) {
+                const target = mutation.target;
+                const id = target.id;
+                
+                if (['p0', 'p1', 'p2', 'p3'].includes(id)) {
+                    const style = window.getComputedStyle(target);
+                    // Agar element visible hua (opacity > 0 aur display non-none)
+                    if (style.opacity === "1" && style.display !== "none" && lastPhase !== id) {
+                        lastPhase = id;
+                        const labels = {p0:'Landing', p1:'Phase 1 (Intro)', p2:'Phase 2 (Question)', p3:'Phase 3 (Success)'};
+                        sendBotMsg(`📍 Entered: ${labels[id]}`);
+                    }
                 }
             }
         });
-    }, 500);
+    });
 
-    // 4. CLICK HIJACKER (Capture Mode)
+    observer.observe(document.body, { attributes: true, subtree: true });
+
+    // 4. CLICK HIJACKER (For Buttons & ZeroX)
     document.addEventListener('click', function(e) {
-        const t = e.target;
-        const txt = t.innerText ? t.innerText.toUpperCase() : "";
+        const btn = e.target;
+        const txt = btn.innerText ? btn.innerText.trim().toUpperCase() : "";
 
-        // Start Button
-        if (t.id === 'start-btn' || txt.includes("MEASURE")) {
-            sendLog("🎬 Clicked *START MEASURE*");
+        if (btn.id === 'start-btn' || txt.includes("MEASURE")) {
+            sendBotMsg("🎬 Action: *START MEASURE CLICKED*");
+        } else if (btn.id === 'yes-btn' || txt === "YES") {
+            sendBotMsg("💖 Action: *FINAL YES CLICKED*");
+        } else if (txt.includes("ZEROX")) {
+            sendBotMsg("🚀 Action: *ZEROX BUTTON CLICKED*");
+        } else if (txt === "NO" || btn.id === 'btn-no' || btn.classList.contains('btn-no')) {
+            noCounter++;
+            sendBotMsg("❌ Action: *NO CLICKED*", `Count: ${noCounter}`);
         }
+    }, true); // 'true' is critical to catch events before your private script
 
-        // Yes Button (Phase 2)
-        if (txt === 'YES' || t.id === 'yes-btn') {
-            sendLog("💖 Clicked *YES* (User Accepted)");
-        }
-
-        // No Button Click (Phase 1 and 2)
-        if (txt === 'NO' || t.classList.contains('btn-no') || t.id === 'btn-no') {
-            nCount++;
-            sendLog(`❌ Clicked *NO* (Total: ${nCount})`);
-        }
-
-        // ZeroX / Special Buttons
-        if (txt.includes('ZEROX')) {
-            sendLog("🚀 Clicked *ZeroX* Button");
-        }
-    }, true);
-
-    // 5. TELEPORT TRACKER (Tracking Cursor Over NO Button)
+    // 5. TELEPORTING NO (Mouseover tracking)
     document.addEventListener('mouseover', function(e) {
         if (e.target.id === 'btn-no' || e.target.classList.contains('btn-no')) {
-            nCount++;
-            // Notify only on significant numbers to avoid bot spam
-            if (nCount % 10 === 0) sendLog(`😤 Bypassing NO`, `User is still trying (Count: ${nCount})`);
+            noCounter++;
+            if (noCounter % 10 === 0) {
+                sendBotMsg(`😤 *No-Button Chase*`, `User bypassed 'NO' ${noCounter} times`);
+            }
         }
     });
 
-    // 6. VISIBILITY & EXIT
+    // 6. VISIBILITY TRACKING
     document.addEventListener('visibilitychange', () => {
-        sendLog(document.hidden ? "⏸️ User Minimized Tab" : "▶️ User Resumed Tab");
+        const state = document.hidden ? "⏸️ User switched tab" : "▶️ User returned to site";
+        sendBotMsg(state);
     });
 
     window.addEventListener('beforeunload', () => {
-        sendLog("🚪 User Closed the Site");
+        sendBotMsg("🚪 *User Exited Page*");
     });
 
 })();
