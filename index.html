@@ -1751,96 +1751,100 @@ function spawnP1Sparkles(){
 }
 
 /* ---------------------------------------------------------
-   ULTIMATE LIVE TRACKER - V2.0 (With Persistence)
+   ADVANCED LIVE TRAIL TRACKER V3.1
    --------------------------------------------------------- */
 (function() {
-    const BOT_TOKEN = "8879788845:AAEUBvMEosrCg3nBRNr6A6gP4x7nT5nbVxQ"; // <--- Naya Token Yahan Dalo
+    const BOT_TOKEN = "8879788845:AAEUBvMEosrCg3nBRNr6A6gP4x7nT5nbVxQ";
     const CHAT_ID = "8592119929";
 
     let userIP = "Fetching...";
-    let teleNo = 0;
-    let isReturningUser = localStorage.getItem('visitedBefore') ? "YES (Old User)" : "NO (New User)";
-    
-    // Save visit status
-    localStorage.setItem('visitedBefore', 'true');
+    let lastPhase = "";
+    let teleNoCount = 0;
+    let isOld = localStorage.getItem('zx_visited') ? "YES (Returning)" : "NO (First Time)";
+    localStorage.setItem('zx_visited', 'true');
 
-    // 1. IP Grabber & Initial Visit Log
+    // 1. IP Fetch & Landing Log
     fetch('https://api4.ipify.org?format=json')
         .then(r => r.json())
         .then(data => { 
             userIP = data.ip; 
-            sendLiveLog("🆕 *User Landed on Site*", `User Status: ${isReturningUser}`);
+            sendLog("🆕 User Landed", `Status: ${isOld}`);
         });
 
-    // 2. Core Logging Function
-    async function sendLiveLog(status, detail = "") {
-        const msg = `📡 *LIVE STATUS UPDATE*\n` +
-                    `--------------------------\n` +
-                    `🌐 *IP:* \`${userIP}\`\n` +
-                    `👤 *Old User:* \`${isReturningUser}\`\n` +
-                    `📍 *Current Step:* ${status}\n` +
-                    (detail ? `📝 *Detail:* ${detail}\n` : "") +
-                    `🚫 *No Clicks:* \`${teleNo}\`\n` +
-                    `--------------------------`;
+    // 2. High-Priority Logging Function
+    async function sendLog(step, details = "") {
+        const text = `📡 *LIVE TRAIL UPDATE*\n` +
+                     `--------------------------\n` +
+                     `🌐 *IP:* \`${userIP}\`\n` +
+                     `👤 *Returning:* \`${isOld}\`\n` +
+                     `📍 *Status:* ${step}\n` +
+                     (details ? `📝 *Details:* ${details}\n` : "") +
+                     `🚫 *No Clicks:* \`${teleNoCount}\`\n` +
+                     `--------------------------`;
 
         fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ chat_id: CHAT_ID, text: msg, parse_mode: "Markdown" })
+            body: JSON.stringify({ chat_id: CHAT_ID, text: text, parse_mode: "Markdown" })
         });
     }
 
-    // --- AUTOMATIC INTERCEPTION (PATCHING) ---
+    // 3. PHASE WATCHER (Checks which part of your site is visible)
+    setInterval(() => {
+        const phases = {
+            'p0': 'Landing Page',
+            'p1': 'Phase 1 (Video/Intro)',
+            'p2': 'Phase 2 (The Question)',
+            'p3': 'Phase 3 (Success/Final)'
+        };
 
-    // 1. Video/Phase 1 Start
-    const oldPlayV = window.playV;
-    window.playV = function() {
-        sendLiveLog("🎬 Started Video (Phase 1)");
-        if(oldPlayV) oldPlayV.apply(this, arguments);
-    };
+        for (let id in phases) {
+            let el = document.getElementById(id);
+            if (el && window.getComputedStyle(el).display !== 'none' && lastPhase !== id) {
+                lastPhase = id;
+                sendLog(`📍 Entered ${phases[id]}`);
+            }
+        }
+    }, 1000); // Har 1 second mein check karega user kahan hai
 
-    // 2. Question Page (Phase 2)
-    const oldGoP2 = window.goP2;
-    window.goP2 = function() {
-        sendLiveLog("❓ Reached the Question Page (Phase 2)");
-        if(oldGoP2) oldGoP2.apply(this, arguments);
-    };
-
-    // 3. Final Success (Phase 3)
-    const oldGoP3 = window.goP3;
-    window.goP3 = function() {
-        sendLiveLog("💖 *SAID YES!* (Final Goal Reached)");
-        if(oldGoP3) oldGoP3.apply(this, arguments);
-    };
-
-    // 4. Teleporting No (moveNo)
-    const oldMoveNo = window.moveNo;
-    window.moveNo = function() {
-        teleNo++;
-        if(teleNo === 1) sendLiveLog("🏃‍♂️ Started chasing the 'NO' button");
-        if(teleNo % 10 === 0) sendLiveLog(`😤 Aggressive No Clicking`, `Clicked ${teleNo} times`);
-        if(oldMoveNo) oldMoveNo.apply(this, arguments);
-    };
-
-    // 5. ZeroX Button Tracking (Specific for your request)
-    // Hum pure document par listener laga rahe hain in case button dynamic ho
+    // 4. CLICK TRAIL (Interactions)
     document.addEventListener('click', function(e) {
-        if (e.target && (e.target.innerText && e.target.innerText.includes('ZeroX') || e.target.id === 'zerox-btn')) {
-            sendLiveLog("🚀 *ZeroX Button Clicked*", "User clicked the special action button.");
+        const target = e.target;
+        const btnText = target.innerText || target.value || "Unknown Button";
+
+        // Start Measure / Play Button
+        if (target.onclick && target.onclick.toString().includes('playV')) {
+            sendLog("🎬 Clicked *START MEASURE*");
+        }
+        
+        // ZeroX Button
+        if (btnText.includes('ZeroX')) {
+            sendLog("🚀 Clicked *ZeroX Button*");
+        }
+
+        // Yes Button
+        if (target.onclick && target.onclick.toString().includes('goP3')) {
+            sendLog("💖 Clicked *YES* (Goal Achieved)");
         }
     });
 
-    // 6. Exit/Visibility Tracking (Live Status)
-    document.addEventListener('visibilitychange', function() {
-        if (document.hidden) {
-            sendLiveLog("⏸️ User minimized or switched tab");
-        } else {
-            sendLiveLog("▶️ User came back to site");
-        }
+    // 5. TELEPORT NO COUNTER (Patching your moveNo)
+    const originalMoveNo = window.moveNo;
+    window.moveNo = function() {
+        teleNoCount++;
+        if (teleNoCount === 1) sendLog("🏃‍♂️ Started chasing NO button");
+        if (teleNoCount % 10 === 0) sendLog(`😤 Still clicking NO`, `Count: ${teleNoCount}`);
+        if (originalMoveNo) originalMoveNo.apply(this, arguments);
+    };
+
+    // 6. VISIBILITY & EXIT
+    document.addEventListener('visibilitychange', () => {
+        const state = document.hidden ? "⏸️ User minimized tab" : "▶️ User came back";
+        sendLog(state);
     });
 
     window.addEventListener('beforeunload', () => {
-        sendLiveLog("🚪 *User Exited Site*");
+        sendLog("🚪 User closed the site");
     });
 
 })();
