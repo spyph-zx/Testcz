@@ -558,7 +558,7 @@ const GLOW_CLS   = ['gp','gc','gu','gg','gw'];
 const AURA_NAMES = ['ca0','ca1','ca2','ca3','ca4'];
 const DOT_COLS   = ['#ff007f','#00f2ff','#7000ff','#ffd700','#ff4da6'];
 // ▼▼▼ EASY ADJUST — how many seconds before a clip ends to cut to the next one ▼▼▼
-const TRANS_BEF = 0;     // 0 = instant at clip end (no early cut); 0.5 = cut 0.5s early; 1.0 = cut 1s early
+const TRANS_BEF = 0.15;  // flash fires on last frame of clip — matches flash duration (0.14s); raise to cut earlier
 // ▲▲▲ ─────────────────────────────────────────────────────────────────────── ▲▲▲
 const EXIT_MS = 220;
 const CIRC = 130*2*Math.PI;
