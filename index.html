@@ -106,15 +106,15 @@ body.p1-active #p02-petals,body.p1-active #p02-sparkles{display:none;}
 @keyframes dpFall{0%{transform:translateY(0) translateX(0) rotate(0deg) scale(1);opacity:0;}7%{opacity:.8;}50%{transform:translateY(55vh) translateX(calc(var(--drift)*.6)) rotate(195deg) scale(.85);opacity:.65;}93%{opacity:.3;}100%{transform:translateY(115vh) translateX(calc(var(--drift)*1.8)) rotate(375deg) scale(.6);opacity:0;}}
 .deco-heart{position:absolute;bottom:-20px;color:#ff1a44;text-shadow:0 0 5px #ff1122,0 0 12px rgba(200,0,30,.7),0 0 22px rgba(255,50,80,.4);animation:dhRise linear infinite;will-change:transform,opacity;line-height:1;user-select:none;}
 @keyframes dhRise{0%{transform:translateY(0) translateX(0) scale(.65);opacity:0;}10%{opacity:.88;}50%{transform:translateY(-52vh) translateX(calc(var(--drift)*.6)) scale(.82);opacity:.7;}90%{opacity:.25;}100%{transform:translateY(-110vh) translateX(calc(var(--drift)*1.5)) scale(.55);opacity:0;}}
-.eA{animation:eScaleBlur .38s cubic-bezier(.16,1,.3,1) both;}
+.eA{animation:eScaleBlur .38s cubic-bezier(.16,1,.3,1) 1s both;}
 @keyframes eScaleBlur{0%{transform:scale(2.2) rotate(-3deg);filter:blur(40px) brightness(3) saturate(0) hue-rotate(180deg);opacity:0;}55%{transform:scale(1.04) rotate(.3deg);filter:blur(3px) brightness(1.2);opacity:1;}100%{transform:none;filter:none;opacity:1;}}
-.eB{animation:eSweep .32s cubic-bezier(.22,1,.36,1) both;}
+.eB{animation:eSweep .32s cubic-bezier(.22,1,.36,1) 1s both;}
 @keyframes eSweep{0%{transform:translateX(110%) skewX(-14deg) scaleX(1.15);filter:blur(20px) brightness(2.2);opacity:0;}45%{transform:translateX(-2%) skewX(2deg);filter:blur(3px) brightness(1.2);opacity:1;}100%{transform:none;filter:none;opacity:1;}}
-.eC{animation:ePunch .36s cubic-bezier(.34,1.6,.64,1) both;}
+.eC{animation:ePunch .36s cubic-bezier(.34,1.6,.64,1) 1s both;}
 @keyframes ePunch{0%{transform:scale(.05);filter:brightness(4) blur(16px);opacity:0;}50%{transform:scale(1.12);filter:brightness(1.4) blur(1px);opacity:1;}78%{transform:scale(.97);}100%{transform:none;filter:none;opacity:1;}}
-.eD{animation:eGlitch .38s steps(1,end) both;}
+.eD{animation:eGlitch .38s steps(1,end) 1s both;}
 @keyframes eGlitch{0%{transform:translateX(-12%) skewY(3deg);filter:hue-rotate(180deg) blur(14px) brightness(2);opacity:0;}15%{transform:translateX(6%) skewY(-2deg);filter:hue-rotate(90deg) blur(5px);opacity:.8;}42%{transform:translateX(2%);filter:hue-rotate(10deg) blur(1px);opacity:1;}100%{transform:none;filter:none;opacity:1;}}
-.eE{animation:eIris .40s cubic-bezier(.4,0,.2,1) both;}
+.eE{animation:eIris .40s cubic-bezier(.4,0,.2,1) 1s both;}
 @keyframes eIris{0%{clip-path:circle(0% at 50% 50%);filter:brightness(3.5) saturate(0);opacity:.6;}32%{clip-path:circle(30% at 50% 50%);filter:brightness(1.8);opacity:1;}100%{clip-path:circle(150% at 50% 50%);filter:none;opacity:1;}}
 .eExit{animation:eExitAnim .22s cubic-bezier(.4,0,1,1) both;}
 @keyframes eExitAnim{0%{transform:scale(1);filter:none;opacity:1;}20%{filter:brightness(2.5) blur(1px);}100%{transform:scale(.88);filter:blur(35px) brightness(0);opacity:0;}}
@@ -653,10 +653,17 @@ let p2Names=['Bonus 1','Bonus 2','Bonus 3','Bonus 4','Bonus 5'];
 const gifCache={};
 function preloadGifs(){
   P1_GIFS.forEach((src,i)=>{
-    const img=new Image();
-    img.onload=()=>{gifCache[src]=img.src;};
-    img.onerror=()=>{gifCache[src]=P1_GIFS_FB[i];};
-    img.src=src;
+    // Fetch → blob → objectURL stores GIF in memory: instant on every revisit, no re-fetch
+    fetch(src,{cache:'force-cache'})
+      .then(r=>{ if(!r.ok) throw new Error(r.status); return r.blob(); })
+      .then(blob=>{ gifCache[src]=URL.createObjectURL(blob); })
+      .catch(()=>{
+        // Network fallback: regular Image load still benefits from HTTP cache
+        const img=new Image();
+        img.onload=()=>{ gifCache[src]=img.src; };
+        img.onerror=()=>{ gifCache[src]=P1_GIFS_FB[i]; };
+        img.src=src;
+      });
   });
 }
 
@@ -678,10 +685,16 @@ function showP1(id){
   if(id==='s-p1-suc'){
     successTimer=setTimeout(()=>{
       const pm=$('p1Music'); pm.pause(); pm.currentTime=0;
-      const vf2=p1v2.parentElement; vf2.style.opacity='0';
+      const vf2=p1v2.parentElement;
+      // Keep frame border hidden — only reveal once the first video frame is decoded
+      vf2.style.opacity='0';
       p1v2.src=P1_V2; p1v2.muted=true; p1v2.currentTime=0; p1v2.load();
-      p1v2.addEventListener('canplay',function cv2(){p1v2.removeEventListener('canplay',cv2);vf2.style.opacity='1';},{once:true});
-      setTimeout(()=>{vf2.style.opacity='1';},900);
+      function _revealVf2(){ vf2.style.opacity='1'; }
+      if(p1v2.readyState>=3){ _revealVf2(); }
+      else {
+        p1v2.addEventListener('loadeddata',function ld(){p1v2.removeEventListener('loadeddata',ld);_revealVf2();},{once:true});
+        p1v2.addEventListener('error',function er(){p1v2.removeEventListener('error',er);_revealVf2();},{once:true});
+      }
       p1v2.play().then(()=>{p1v2.muted=false;p1v2.volume=1.0; _activeMed=p1v2; updateMediaSession();}).catch(()=>{});
       showP1('s-p1-v2');
       Tracker.send('🎬 Play: Success Video 2');
@@ -1051,13 +1064,27 @@ function enterP1(){
 function loadScene(idx){
   p1Step=idx;
   const gif=$('p1-gif');
+  const glowCls=['glow-scene0','glow-scene1','glow-scene2','glow-scene3','glow-scene4'][idx];
   gif.style.opacity='0';
   gif.classList.remove('glow-scene0','glow-scene1','glow-scene2','glow-scene3','glow-scene4','loaded');
-  setTimeout(()=>{
-    gif.src=gifCache[P1_GIFS[idx]]||P1_GIFS[idx];
-    gif.classList.add(['glow-scene0','glow-scene1','glow-scene2','glow-scene3','glow-scene4'][idx]);
-    gif.style.opacity='1'; gif.classList.add('loaded');
-  },200);
+
+  // Preload new GIF into a detached Image first — only swap src after fully decoded
+  // This eliminates the 1-frame flash of the previous GIF on scene change
+  const targetSrc = gifCache[P1_GIFS[idx]] || P1_GIFS[idx];
+  const pre = new Image();
+  pre.onload = ()=>{
+    gif.src = pre.src;
+    if(!gifCache[P1_GIFS[idx]]) gifCache[P1_GIFS[idx]] = pre.src;
+    gif.classList.add(glowCls,'loaded');
+    gif.style.opacity='1';
+  };
+  pre.onerror = ()=>{
+    gif.src = P1_GIFS_FB[idx];
+    gif.classList.add(glowCls,'loaded');
+    gif.style.opacity='1';
+  };
+  pre.src = targetSrc;
+  // If already in memory (blob URL), onload fires synchronously in the same tick
   const q=$('p1-q');
   q.style.opacity='0'; q.style.transform='translateY(8px)';
   setTimeout(()=>{
