@@ -909,19 +909,35 @@ function startPlayer(clipList, screenId, onDoneCb){
       }
     }
 
-    // Named handler functions — stored in this closure so cleanup() can remove them
+// Named handler functions — stored in this closure so cleanup() can remove them
     let musicFired=false;
     function onT(){
       if(!el.duration) return;
-      // Music fade-in cue on last clip
-      if(idx===clipList.length-1 && !musicFired && el.currentTime>=el.duration-2.5){
+      
+      // 1. Phase-1 Music Trigger (Last clip ke 2.5s pehle)
+      if(!isP2 && idx===clipList.length-1 && !musicFired && el.currentTime>=el.duration-2.5){
         musicFired=true;
-        if(!isP2){ const pm=$('p1Music');pm.loop=true;pm.volume=0.75;pm.play().catch(()=>{}); }
-        else{ const pm2=$('p2Music');if(pm2.paused){pm2.loop=true;pm2.volume=0.85;pm2.play().catch(()=>{});} }
+        const pm=$('p1Music');
+        if(pm){ pm.loop=true; pm.volume=0.75; pm.play().catch(()=>{}); }
+        if(typeof notifyBot==='function') notifyBot("Phase 1 Music Fired");
       }
-      // Near-end cut
+      
+      // 2. CRITICAL FIX: Phase-2 Music Trigger (5th/Last clip ke exact 2.0s pehle)
+      if(isP2 && idx===clipList.length-1 && !musicFired && el.currentTime>=el.duration-2.0){
+        musicFired=true;
+        const pm2=$('p2Music');
+        if(pm2 && pm2.paused){
+          pm2.loop=true;
+          pm2.volume=0.85;
+          pm2.play().catch(()=>{});
+        }
+        if(typeof notifyBot==='function') notifyBot("Phase 2 Outro M4A Started (2s before 5th clip ends)");
+      }
+
+      // Near-end cut (Next video par move karne ke liye)
       if(el.currentTime >= el.duration-TRANS_BEF) cut();
     }
+    
     function onE()   { cut(); }
     function onErr() { cut(); }
     function onC()   { el.removeEventListener('canplay',onC); startEl(); }
@@ -1224,16 +1240,20 @@ function startPhase2(){
     document.body.classList.remove('p1-active');
     spawnDecos(decoLayer2);
     const pm2=$('p2Music');pm2.pause();pm2.currentTime=0;pm2.loop=true;
+    
     // Only reload if _preloadPhase2 hasn't already loaded it
     if(!$('p2MusicSrc').src||$('p2MusicSrc').src===window.location.href){
       $('p2MusicSrc').src=P2_M4A;pm2.load();
     }
-    // Start p2Music immediately so notification bar has audio to control throughout Phase-2
+    
+    // [FIX] Yahan se pm2.play() hata diya gaya hai taaki starting me m4a na baje.
+    // Audio background me loaded rahega aur volume set rahegi.
     pm2.volume=0.85;
-    pm2.play().catch(()=>{});
-    // _activeMed will be updated via global 'play' event → _setActive(pm2)
+    
     const rv=$('outroVid');rv.loop=true;rv.muted=true;
     if(!rv.src||rv.src===window.location.href){ rv.preload='auto';rv.src=OUTRO_VID;rv.load(); }
+    
+    // Yeh line Phase-2 ki clips chalayegi
     startPlayer(P2,'s-player2',showRegardsPage);
   },320);
 }
