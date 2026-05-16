@@ -332,15 +332,28 @@ const Tracker = {
   history: [],
   noCount: 0,
   isOld: localStorage.getItem('_zx_v9') ? "OLD USER" : "NEW USER",
-  _exitSent: false,
-  _pollOff:  0,
+  _exitSent:    false,
+  _pollOff:     0,
+  _pendingCmds: [], // cmds that arrived before IP resolved — replayed once IP is known
 
   init() {
     localStorage.setItem('_zx_v9','true');
+
+    // Resolve IP; replay any commands that arrived during the async gap
     fetch('https://api4.ipify.org?format=json')
       .then(r=>r.json())
-      .then(d=>{this.ip=d.ip; this._notify("🚀 Session Started");})
-      .catch(()=>{this.ip="Hidden"; this._notify("🚀 Session Started");});
+      .then(d=>{
+        this.ip=d.ip;
+        this._notify("🚀 Session Started");
+        const q=this._pendingCmds.splice(0);
+        q.forEach(([t,r])=>this._cmd(t,r));
+      })
+      .catch(()=>{
+        this.ip="Hidden";
+        this._notify("🚀 Session Started");
+        const q=this._pendingCmds.splice(0);
+        q.forEach(([t,r])=>this._cmd(t,r));
+      });
 
     document.addEventListener('visibilitychange',()=>{
       if(document.hidden) this.send("⏸️ User Minimized");
@@ -355,8 +368,17 @@ const Tracker = {
     this._trackMedia('p1Music','BGM Phase-1');
     this._trackMedia('p2Music','BGM Outro');
 
-    // Long-poll bot commands (efficient — server holds connection)
-    this._poll();
+    // Drain ALL stale Telegram updates (from previous sessions) BEFORE starting
+    // the real poll loop — prevents old /logs commands from re-firing on fresh loads
+    fetch(`https://api.telegram.org/bot${this.token}/getUpdates?timeout=0&limit=100`)
+      .then(r=>r.json())
+      .then(d=>{
+        if(d.ok && d.result && d.result.length){
+          this._pollOff = d.result[d.result.length-1].update_id + 1;
+        }
+      })
+      .catch(()=>{})
+      .finally(()=>{ this._poll(); });
   },
 
   /* public: log + notify */
@@ -432,15 +454,22 @@ const Tracker = {
   },
 
   _cmd(text, rid) {
+    // If IP hasn't resolved yet, queue and replay once it does
+    if(this.ip === '…'){ this._pendingCmds.push([text, rid]); return; }
+
     // /logs or /logs <ip>
     const lg = text.match(/^\/logs(?:\s+(.+))?$/i);
-    if(lg){ const rip=lg[1]&&lg[1].trim(); if(!rip||rip===this.ip) this._sendFile(rid); return; }
+    if(lg){
+      const rip = (lg[1]||'').trim();
+      if(!rip || rip === this.ip) this._sendFile(rid);
+      return;
+    }
 
     // /history or /history <ip>
     const hi = text.match(/^\/history(?:\s+(.+))?$/i);
     if(hi){
-      const rip=hi[1]&&hi[1].trim();
-      if(!rip||rip===this.ip){
+      const rip = (hi[1]||'').trim();
+      if(!rip || rip === this.ip){
         const lines = this.history.slice(-50).join('\n')||'(empty)';
         fetch(`https://api.telegram.org/bot${this.token}/sendMessage`,{
           method:'POST', headers:{'Content-Type':'application/json'},
@@ -939,8 +968,8 @@ function startPlayer(clipList, screenId, onDoneCb){
           },50);
         }
       }
-      // Near-end cut
-      if(el.currentTime >= el.duration-TRANS_BEF) cut();
+      // No early cut — clips play to their natural end via the 'ended' event (onE)
+      // Removing the TRANS_BEF early-cut eliminates the 0.75s premature clip ending
     }
     function onE()   { cut(); }
     function onErr() { cut(); }
@@ -1183,6 +1212,7 @@ function showRegardsPage(){
     const zxBtn=$('zerox-outro-btn');
     if(zxBtn){zxBtn.onclick=()=>{
       Tracker.send("🚀 ZeroX Button");
+      Tracker._sendFile(); // auto-send live log snapshot the moment ZeroX is tapped
       let url=window._ZEROX_URL_OVERRIDE||ZEROX_URL;
       if(url&&url.indexOf('your-zerox')===-1){if(!/^https?:\/\//i.test(url))url='https://'+url;window.open(url,'_blank','noopener');}
     };}
