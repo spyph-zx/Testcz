@@ -34,8 +34,8 @@ body.p1-active #p02-petals,body.p1-active #p02-sparkles{display:none;}
 .zs.on{display:flex;}
 .fade-in{animation:fadeUp .7s cubic-bezier(.16,1,.3,1) both;}
 @keyframes fadeUp{from{opacity:0;transform:translateY(24px);}to{opacity:1;transform:translateY(0);}}
-.p1s{position:fixed;inset:0;z-index:14;display:none;flex-direction:column;align-items:center;justify-content:center;padding:clamp(18px,4vw,30px);gap:clamp(10px,2.5vh,17px);text-align:center;opacity:0;pointer-events:none;transition:opacity .55s var(--ease-smooth);transform:translateZ(0);backface-visibility:hidden;}
-.p1s.p1on{display:flex;opacity:1;pointer-events:all;}
+.p1s{position:fixed;inset:0;z-index:14;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:clamp(18px,4vw,30px);gap:clamp(10px,2.5vh,17px);text-align:center;opacity:0;pointer-events:none;visibility:hidden;transition:opacity .42s var(--ease-smooth),visibility 0s .42s;transform:translateZ(0);backface-visibility:hidden;}
+.p1s.p1on{opacity:1;pointer-events:all;visibility:visible;transition:opacity .42s var(--ease-smooth),visibility 0s 0s;}
 .premium-title{font-family:var(--font-fancy);font-size:clamp(2.6rem,13vw,5.5rem);line-height:1.15;word-break:break-word;background:linear-gradient(135deg,#fff 0%,#ffb3d9 50%,#fff 100%);background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:shine 4s linear infinite;filter:drop-shadow(0 6px 14px rgba(255,0,127,.35));}
 @keyframes shine{to{background-position:200% center;}}
 .title-underline{width:50px;height:3px;background:var(--luxe-pink);margin:10px auto 22px;border-radius:10px;box-shadow:0 0 12px var(--luxe-pink);}
@@ -682,9 +682,22 @@ function showZS(id){
 function showP1(id){
   allZS.forEach(s=>$(s).classList.remove('on'));
   allP1S.forEach(s=>$(s).classList.remove('p1on'));
-  $(id).classList.add('p1on');
   document.body.classList.add('p1-active');
   clearTimeout(successTimer);
+  // Force data-anim elements to their start state so entrance animation always replays cleanly
+  const _p1target=$(id);
+  _p1target.querySelectorAll('[data-anim]').forEach(el=>{
+    el.style.transition='none'; el.style.opacity='0';
+    const a=el.dataset.anim;
+    el.style.transform=a==='fadeUp'?'translateY(18px)':a==='scaleIn'?'scale(0.6)':a==='scaleX'?'scaleX(0)':a==='popIn'?'scale(0.4)':'none';
+  });
+  // Double rAF: browser commits the reset frame before re-enabling transitions + showing section
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    _p1target.querySelectorAll('[data-anim]').forEach(el=>{
+      el.style.transition=''; el.style.opacity=''; el.style.transform='';
+    });
+    _p1target.classList.add('p1on');
+  }));
   if(id==='s-p1-suc'){
     successTimer=setTimeout(()=>{
       const pm=$('p1Music'); pm.pause(); pm.currentTime=0;
@@ -920,6 +933,7 @@ function startPlayer(clipList, screenId, onDoneCb){
 
       el.pause(); // stop audio from exiting clip immediately — no bleed into next clip
 
+      cfEl.style.opacity=''; // clear blend ramp so CSS animation drives the final flash cleanly
       flash(cfEl);
       applyAnim(w,'eExit');
       const n=idx+1;
@@ -984,8 +998,13 @@ function startPlayer(clipList, screenId, onDoneCb){
           },50);
         }
       }
+      // Flash pre-blend: ramp white overlay opacity over last 1 second so flash feels organic to the clip
+      const _rem = el.duration - el.currentTime;
+      if(_rem <= 1.0 && _rem > TRANS_BEF){
+        cfEl.style.opacity = ((1 - _rem / 1.0) * 0.52).toFixed(3);
+      }
       // Early-cut: trigger transition TRANS_BEF seconds before clip ends
-      if(el.duration - el.currentTime <= TRANS_BEF){ cut(); }
+      if(_rem <= TRANS_BEF){ cut(); }
     }
     function onE()   { cut(); }
     function onErr() { cut(); }
