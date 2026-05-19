@@ -705,6 +705,7 @@ function showP1(id){
       // Keep frame border hidden — only reveal once the first video frame is decoded
       vf2.style.opacity='0';
       p1v2.src=P1_V2; p1v2.muted=true; p1v2.currentTime=0; p1v2.load();
+    if(!p1v1.src||p1v1.src===window.location.href){p1v1.src=P1_V1;p1v1.preload='auto';p1v1.load();}
       function _revealVf2(){ vf2.style.opacity='1'; }
       if(p1v2.readyState>=3){ _revealVf2(); }
       else {
@@ -1000,8 +1001,8 @@ function startPlayer(clipList, screenId, onDoneCb){
       }
       // Flash pre-blend: ramp white overlay opacity over last 1 second so flash feels organic to the clip
       const _rem = el.duration - el.currentTime;
-      if(_rem <= 1.0 && _rem > TRANS_BEF){
-        cfEl.style.opacity = ((1 - _rem / 1.0) * 0.52).toFixed(3);
+      if(_rem <= 0.5 && _rem > TRANS_BEF){
+        cfEl.style.opacity = ((1 - _rem / 0.5) * 0.52).toFixed(3);
       }
       // Early-cut: trigger transition TRANS_BEF seconds before clip ends
       if(_rem <= TRANS_BEF){ cut(); }
@@ -1051,6 +1052,16 @@ function startPlayer(clipList, screenId, onDoneCb){
     }
   }
 
+  // Pre-buffer clip[1] into the B-slot immediately — gives it the same head-start
+  // as clips 2-5, eliminating the black-screen stall after the first flash.
+  if(clipList.length > 1){
+    const _preUrl=clipList[1]||'';
+    if(_preUrl){
+      const _preAbs=new URL(_preUrl,window.location.href).href;
+      const _curAbs=(vbEl.src&&vbEl.src!==window.location.href)?new URL(vbEl.src,window.location.href).href:'';
+      if(_preAbs!==_curAbs){vbEl.preload='auto';vbEl.src=_preUrl;vbEl.load();}
+    }
+  }
   playClip(0);
 
   return ()=>{
@@ -1131,7 +1142,7 @@ function p1Guard(fn){
   if(_p1Busy) return;
   _p1Busy=true;
   fn();
-  setTimeout(()=>{ _p1Busy=false; },380);
+  setTimeout(()=>{ _p1Busy=false; },180);
 }
 
 p1YesEl.addEventListener('click',()=>p1Guard(()=>{
@@ -1173,7 +1184,7 @@ function handleNo(){
     if(!p1v1.src||p1v1.src===window.location.href){ p1v1.src=P1_V1; p1v1.load(); }
     p1v1.currentTime=0;
     p1v1.addEventListener('canplay',function ov1(){p1v1.removeEventListener('canplay',ov1);vf1.style.opacity='1';},{once:true});
-    setTimeout(()=>{vf1.style.opacity='1';},900);
+    setTimeout(()=>{vf1.style.opacity='1';},250);
     p1v1.play().catch(()=>{});
     _activeMed = p1v1;
     updateMediaSession();
